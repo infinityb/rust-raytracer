@@ -9,6 +9,7 @@ use material::Texture;
 use material::textures::{CheckerTexture, CubeMap, UVTexture, ImageTexture};
 use raytracer::Octree;
 use raytracer::animator::CameraKeyframe;
+use raytracer::compositor::ColorRGBA;
 use scene::{Camera, Scene};
 use vec3::Vec3;
 
@@ -26,7 +27,7 @@ pub fn get_camera(image_width: int, image_height: int, fov: f64) -> Camera {
 
 pub fn get_scene() -> Scene {
     let mut lights: Vec<Box<Light+Send+Sync>> = Vec::new();
-    lights.push(box SphereLight { position: Vec3 { x: -1400.0, y: 200.0, z: 100.0 }, color: Vec3 { x: 1.0, y: 0.80, z: 0.40 }, radius: 50.0 });
+    lights.push(box SphereLight { position: Vec3 { x: -1400.0, y: 200.0, z: 100.0 }, color: ColorRGBA::new_rgb(1.0, 0.80, 0.40), radius: 50.0 });
 
     let grey = CookTorranceMaterial { k_a: 0.0, k_d: 0.5, k_s: 0.8, k_sg: 0.5, k_tg: 0.0, gauss_constant: 5.0, roughness: 0.1, ior: 0.4, ambient: Vec3::one(), diffuse: Vec3 { x: 0.6, y: 0.6, z: 0.65 }, specular: Vec3::one(), transmission: Vec3::zero(), diffuse_texture: None };
 

@@ -10,6 +10,7 @@ use material::textures::{CheckerTexture, CubeMap, UVTexture, ImageTexture};
 use mat4::{Mat4, Transform};
 use raytracer::Octree;
 use raytracer::animator::CameraKeyframe;
+use raytracer::compositor::ColorRGBA;
 use scene::{Camera, Scene};
 use vec3::Vec3;
 
@@ -30,7 +31,7 @@ pub fn get_teapot_camera(image_width: int, image_height: int, fov: f64) -> Camer
 
 pub fn get_teapot_scene() -> Scene {
     let mut lights: Vec<Box<Light+Send+Sync>> = Vec::new();
-    lights.push(box SphereLight { position: Vec3 { x: 0.6, y: 2.0, z: 1.2 }, color: Vec3::one(), radius: 1.0 });
+    lights.push(box SphereLight { position: Vec3 { x: 0.6, y: 2.0, z: 1.2 }, color: ColorRGBA::white(), radius: 1.0 });
 
     let porcelain = CookTorranceMaterial { k_a: 0.0, k_d: 0.9, k_s: 1.0, k_sg: 1.0, k_tg: 0.0, gauss_constant: 5.0, roughness: 0.1, ior: 1.1, ambient: Vec3::one(), diffuse: Vec3 { x: 0.9, y: 0.85, z: 0.7 }, specular: Vec3::one(), transmission: Vec3::zero(), diffuse_texture: None };
 
@@ -48,7 +49,7 @@ pub fn get_teapot_scene() -> Scene {
     Scene {
         lights: lights,
         octree: octree,
-        background: Vec3 { x: 0.3, y: 0.5, z: 0.8 },
+        background: ColorRGBA::new_rgb(0.3_f64, 0.5, 0.8).to_vec3(),
         skybox: Some(CubeMap::load(
             "./docs/assets/textures/skyboxes/miramar_y_up/left.ppm",
             "./docs/assets/textures/skyboxes/miramar_y_up/right.ppm",

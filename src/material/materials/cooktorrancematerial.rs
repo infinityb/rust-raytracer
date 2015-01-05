@@ -11,10 +11,10 @@ pub struct CookTorranceMaterial {
     pub k_s: f64,            // Local specular coefficient
     pub k_sg: f64,           // Global specular coefficient (mirror reflection)
     pub k_tg: f64,           // Global transmissive coefficient (refraction)
-    pub ambient: Vec3,       // Ambient color
-    pub diffuse: Vec3,       // Diffuse color
-    pub transmission: Vec3,  // Transmissive color
-    pub specular: Vec3,      // Specular color
+    ambient: Vec3,       // Ambient color
+    diffuse: Vec3,       // Diffuse color
+    transmission: Vec3,  // Transmissive color
+    specular: Vec3,      // Specular color
     pub roughness: f64,      // Smaller = shininer => smaller highlight spot on surface
     pub gauss_constant: f64, // Controls curve of distribution of microfacets
     pub ior: f64,            // Index of refraction, also used for specular highlights
@@ -25,7 +25,7 @@ impl Material for CookTorranceMaterial {
     fn sample(&self, n: Vec3, i: Vec3, l: Vec3, u: f64, v: f64) -> Vec3 {
         let ambient  = self.ambient.scale(self.k_a);
         let diffuse  = self.diffuse.scale(self.k_d).scale(n.dot(&l)) * match self.diffuse_texture {
-            Some(ref x) => x.color(u, v),
+            Some(ref x) => x.color(u, v).to_vec3(),
             None => Vec3::one()
         };
 
