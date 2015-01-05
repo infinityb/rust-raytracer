@@ -1,10 +1,7 @@
 use std::num::Float;
 use vec3::Vec3;
 use material::Texture;
-use raytracer::compositor::Surface;
-
-#[cfg(test)]
-use raytracer::compositor::ColorRGBA;
+use raytracer::compositor::{Surface, ColorRGBA};
 
 /// Maps the supplied (u, v) coordinate to the image (s, t).
 #[derive(Clone)]
@@ -18,16 +15,7 @@ impl ImageTexture {
         ImageTexture { image: ::util::import::from_ppm(filename) }
     }
 
-    // Alias, used by skybox sampling. This is needed because we aren't storing the skybox
-    // ImageTextures as a more generic Texture (vec of objects with the Texture trait).
-    // An ImageTexture-specific function needs to exist to be called.
-    pub fn sample(&self, u: f64, v: f64) -> Vec3 {
-        self.color(u, v)
-    }
-}
-
-impl Texture for ImageTexture {
-    fn color(&self, u: f64, v: f64) -> Vec3 {
+    fn color_at(&self, (u, v): (f64, f64)) -> ColorRGBA<f64> {
         // Avoid out-of-bounds during bilinear filtering
         let s = u % 1.0 * (self.image.width as f64 - 1.0);
         let t = v % 1.0 * (self.image.height as f64 - 1.0);
@@ -47,7 +35,20 @@ impl Texture for ImageTexture {
                   self.image[(x    , y + 1)].channel_f64() * u_opposite
                 + self.image[(x + 1, y + 1)].channel_f64() * u_ratio
             ) * v_ratio
-        ).to_vec3()
+        )
+    }
+
+    // Alias, used by skybox sampling. This is needed because we aren't storing the skybox
+    // ImageTextures as a more generic Texture (vec of objects with the Texture trait).
+    // An ImageTexture-specific function needs to exist to be called.
+    pub fn sample(&self, u: f64, v: f64) -> Vec3 {
+        self.color_at((u, v)).to_vec3()
+    }
+}
+
+impl Texture for ImageTexture {
+    fn color(&self, u: f64, v: f64) -> ColorRGBA<f64> {
+        self.color_at((u, v))
     }
 
     fn clone_self(&self) -> Box<Texture+Send+Sync> {

@@ -1,11 +1,12 @@
 use std::rand::{thread_rng, Rng};
 use light::light::Light;
+use raytracer::compositor::ColorRGBA;
 use vec3::Vec3;
 
 #[allow(dead_code)]
 pub struct SphereLight {
     pub position: Vec3,
-    pub color: Vec3,
+    pub color: ColorRGBA<f64>,
     pub radius: f64
 }
 
@@ -22,7 +23,7 @@ impl Light for SphereLight {
         self.position + jitter
     }
 
-    fn color(&self) -> Vec3 {
+    fn color(&self) -> ColorRGBA<f64> {
         self.color
     }
 
