@@ -2,6 +2,8 @@
 #![feature(macro_rules)]
 #![feature(slicing_syntax)]
 #![feature(old_orphan_check)]
+#![feature(default_type_params)]
+
 #![deny(unused_imports)]
 
 extern crate time;
