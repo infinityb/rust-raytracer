@@ -107,7 +107,7 @@ impl<T: Channel> ColorRGBA<T> {
 
     // Here until we have vec operations (add, mul) for color
     // We also need ColorRGBA<f64>
-    pub fn as_vec3(&self) -> Vec3 {
+    pub fn to_vec3(&self) -> Vec3 {
         let color = self.channel_f64();
         Vec3 {
             x: color.r,

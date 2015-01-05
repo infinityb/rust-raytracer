@@ -47,7 +47,7 @@ impl Texture for ImageTexture {
                   self.image[(x    , y + 1)].channel_f64() * u_opposite
                 + self.image[(x + 1, y + 1)].channel_f64() * u_ratio
             ) * v_ratio
-        ).as_vec3()
+        ).to_vec3()
     }
 
     fn clone_self(&self) -> Box<Texture+Send+Sync> {
