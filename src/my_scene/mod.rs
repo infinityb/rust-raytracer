@@ -5,6 +5,7 @@ pub mod cornell;
 pub mod cow;
 pub mod fresnel;
 pub mod heptoroid;
+pub mod icosahedron;
 pub mod lucy;
 pub mod sibenik;
 pub mod sphere;
