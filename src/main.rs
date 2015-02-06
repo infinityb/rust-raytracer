@@ -1,18 +1,18 @@
-#![feature(macro_rules)]
+#![feature(box_syntax)]
 #![feature(slicing_syntax)]
 #![deny(unused_imports)]
 
 extern crate time;
-extern crate serialize;
+extern crate rand;
+extern crate "rustc-serialize" as rustc_serialize;
 
 use scene::{Camera, Scene};
 
-use std::io::File;
-use std::io;
+use std::old_io::{self, File};
 use std::os;
 use std::sync::Arc;
-use serialize::json;
-use serialize::json::DecoderError::MissingFieldError;
+use rustc_serialize::json;
+use rustc_serialize::json::DecoderError::MissingFieldError;
 
 mod geometry;
 mod light;
@@ -29,32 +29,32 @@ struct ProgramArgs {
     config_file: String
 }
 
-#[deriving(Decodable, Encodable)]
+#[derive(RustcDecodable, RustcEncodable)]
 struct SceneConfig<'a> {
     name: String,
-    size: (int, int),
+    size: (isize, isize),
     fov: f64,
     output_file: String,
 
-    reflect_depth: uint,
-    refract_depth: uint,
-    shadow_samples: uint,
-    pixel_samples: uint,
+    reflect_depth: usize,
+    refract_depth: usize,
+    shadow_samples: usize,
+    pixel_samples: usize,
 
-    photons: uint,
-    photon_bounces: uint,
+    photons: usize,
+    photon_bounces: usize,
     photon_spread: f64,
-    photon_samples: uint,
-    photon_attempts: uint,
+    photon_samples: usize,
+    photon_attempts: usize,
 
     animating: bool,
     fps: f64,
     time_slice: (f64, f64),
-    starting_frame_number: uint
+    starting_frame_number: usize
 }
 
 fn parse_args(args: Vec<String>) -> Result<ProgramArgs, String>  {
-    let (program_name, rest) = match args[] {
+    let (program_name, rest) = match &args[] {
         // I wouldn't expect this in the wild
         [] => panic!("Args do not even include a program name"),
         [ref program_name, rest..] => (
@@ -188,7 +188,7 @@ fn main() {
         Ok(program_args) => program_args,
         Err(mut error_str) => {
             error_str.push_str("\n");
-            let mut stderr = io::stderr();
+            let mut stderr = old_io::stderr();
             assert!(stderr.write(error_str.as_bytes()).is_ok());
             os::set_exit_status(1);
             return
@@ -198,7 +198,7 @@ fn main() {
     let mut file_handle = match File::open(&config_path) {
         Ok(file) => file,
         Err(err) => {
-            let mut stderr = io::stderr();
+            let mut stderr = old_io::stderr();
             assert!(stderr.write(format!("{}\n", err).as_bytes()).is_ok());
             os::set_exit_status(1);
             return
@@ -207,7 +207,7 @@ fn main() {
     let json_data = match file_handle.read_to_string() {
         Ok(data) => data,
         Err(err) => {
-            let mut stderr = io::stderr();
+            let mut stderr = old_io::stderr();
             assert!(stderr.write(format!("{}\n", err).as_bytes()).is_ok());
             os::set_exit_status(1);
             return
@@ -217,7 +217,7 @@ fn main() {
     let config: SceneConfig = match json::decode(json_data[]) {
         Ok(data) => data,
         Err(err) => {
-            let mut stderr = io::stderr();
+            let mut stderr = old_io::stderr();
             let msg = match err {
                 MissingFieldError(field_name) => {
                     format!("parse failure, missing field ``{}''\n", field_name)
@@ -238,7 +238,7 @@ fn main() {
     let (camera, scene) = match scenepair {
         Some(pair) => pair,
         None => {
-            let mut stderr = io::stderr();
+            let mut stderr = old_io::stderr();
             let msg = format!("unknown scene ``{}''\n", config.name);
             assert!(stderr.write(msg.as_bytes()).is_ok());
             os::set_exit_status(1);
@@ -291,12 +291,12 @@ fn main() {
         println!("Render done at {} ({}s)...\nWriting file...",
                  render_time, render_time - scene_time);
 
-        let out_file = format!("{}{}", config.output_file[], ".ppm");
+        let out_file = format!("{}{}", config.output_file, ".ppm");
         util::export::to_ppm(image_data, out_file[]);
         let export_time = ::time::get_time().sec;
 
         println!("Write done: {} ({}s). Written to {}\nTotal: {}s",
                  export_time, export_time - render_time,
-                 config.output_file[], export_time - start_time);
+                 &config.output_file[], export_time - start_time);
     }
 }

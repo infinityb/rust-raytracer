@@ -1,4 +1,4 @@
-use std::io::{File, Truncate, Write};
+use std::old_io::{File, Truncate, Write};
 use raytracer::compositor::{Surface, ColorRGBA};
 
 #[allow(unused_must_use)]

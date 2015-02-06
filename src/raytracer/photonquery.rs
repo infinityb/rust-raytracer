@@ -2,8 +2,8 @@ use std::cmp::{Eq, PartialOrd, Ord, Ordering};
 use raytracer::Photon;
 
 // For use in PhotonCache's querying of nearest N-neighbours
-// #[deriving(Eq, PartialOrd, PartialEq)]
-#[deriving(Clone)]
+// #[derive(Eq, PartialOrd, PartialEq)]
+#[derive(Clone)]
 pub struct PhotonQuery {
     pub photon: Photon,
     pub distance_to_point: f64
@@ -12,9 +12,7 @@ pub struct PhotonQuery {
 // Need total ordering for binary heap
 impl Ord for PhotonQuery {
     fn cmp(&self, other: &PhotonQuery) -> Ordering {
-        if self.distance_to_point < other.distance_to_point { Less }
-        else if self.distance_to_point == other.distance_to_point { Equal }
-        else { Greater }
+        Ord::cmp(self.distance_to_point, other.distance_to_point)
     }
 }
 
@@ -23,11 +21,7 @@ impl Eq for PhotonQuery {
 
 impl PartialOrd for PhotonQuery {
     fn partial_cmp(&self, other: &PhotonQuery) -> Option<Ordering> {
-        Some(
-            if self.distance_to_point < other.distance_to_point { Less }
-            else if self.distance_to_point == other.distance_to_point { Equal }
-            else { Greater }
-        )
+        PartialOrd::partial_cmp(self.distance_to_point, other.distance_to_point)
     }
 }
 

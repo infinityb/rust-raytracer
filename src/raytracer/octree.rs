@@ -1,23 +1,23 @@
-use std::slice::Items;
-use std::num::{Float, FloatMath};
+use std::num::{Float};
 use geometry::bbox::get_bounds_from_objects;
 use geometry::{BBox, Prim};
 use raytracer::Ray;
 use vec3::Vec3;
+use std::slice::Iter;
 
 pub struct Octree<T> {
     pub prims: Option<Vec<T>>,
     pub bbox: BBox,
-    pub depth: int,
+    pub depth: isize,
     pub children: Vec<Octree<T>>,
     pub data: Vec<OctreeData>,
     pub infinites: Vec<T> // for infinite prims (planes)
 }
 
-#[deriving(Clone)]
+#[derive(Clone)]
 struct OctreeData {
     pub bbox: Option<BBox>,
-    pub index: uint
+    pub index: usize
 }
 
 
@@ -33,7 +33,7 @@ impl OctreeData {
 
 impl<T> Octree<T> {
     #[allow(dead_code)]
-    pub fn new(bbox: BBox, depth: int) -> Octree<T> {
+    pub fn new(bbox: BBox, depth: isize) -> Octree<T> {
         let vec_children: Vec<Octree<T>> = Vec::new();
         let vec_data: Vec<OctreeData> = Vec::new();
         let vec_infinite_data: Vec<T> = Vec::new();
@@ -49,9 +49,9 @@ impl<T> Octree<T> {
     }
 
     fn subdivide(&mut self) {
-        for x in range(0i, 2i) {
-            for y in range(0i, 2i) {
-                for z in range(0i, 2i) {
+        for x in range(0is, 2) {
+            for y in range(0is, 2) {
+                for z in range(0is, 2) {
                     let len = self.bbox.len();
 
                     let child_bbox = BBox {
@@ -74,7 +74,7 @@ impl<T> Octree<T> {
     }
 
     #[allow(dead_code)]
-    pub fn insert(&mut self, index: uint, object_bbox: Option<BBox>) -> () {
+    pub fn insert(&mut self, index: usize, object_bbox: Option<BBox>) -> () {
         match object_bbox {
             // Finite object
             Some(object_bbox) => {
@@ -131,7 +131,7 @@ impl Octree<Box<Prim+Send+Sync>> {
         let (finites, infinites) = prims.partition(|prim| prim.bounding().is_some());
         // pbrt recommended max depth for a k-d tree (though, we're using an octree)
         // For a k-d tree: 8 + 1.3 * log2(N)
-        let depth = (1.2 * (finites.len() as f64).log(8.0)).round() as int;
+        let depth = (1.2 * (finites.len() as f64).log(8.0)).round() as isize;
 
         println!("Octree maximum depth {}", depth);
         let mut octree = Octree::new(bounds, depth);
@@ -154,16 +154,16 @@ impl Octree<Box<Prim+Send+Sync>> {
 struct OctreeIterator<'a, T:'a> {
     prims: &'a Vec<T>,
     stack: Vec<&'a Octree<T>>,
-    cur_iter: Option<Items<'a, OctreeData>>,
+    cur_iter: Option<Iter<'a, OctreeData>>,
     ray: &'a Ray,
-    infinites: Items<'a, T>,
+    infinites: Iter<'a, T>,
     just_infinites: bool
 
 }
 
 
 impl<'a> OctreeIterator<'a, Box<Prim+Send+Sync>> {
-    fn new<'a>(root: &'a Octree<Box<Prim+Send+Sync>>, ray: &'a Ray) -> OctreeIterator<'a, Box<Prim+Send+Sync>> {
+    fn new<'b>(root: &'b Octree<Box<Prim+Send+Sync>>, ray: &'b Ray) -> OctreeIterator<'b, Box<Prim+Send+Sync>> {
         let prims = match root.prims {
             Some(ref prims) => prims,
             None => panic!("OctreeIterator must be constructed from an Octree root")
@@ -180,7 +180,9 @@ impl<'a> OctreeIterator<'a, Box<Prim+Send+Sync>> {
 }
 
 
-impl<'a> Iterator<&'a Box<Prim+Send+Sync>> for OctreeIterator<'a, Box<Prim+Send+Sync>> {
+impl<'a> Iterator for OctreeIterator<'a, Box<Prim+Send+Sync>> {
+    type Item = &'a Box<Prim+Send+Sync>;
+
     fn next(&mut self) -> Option<&'a Box<Prim+Send+Sync>> {
         if self.just_infinites {
             return self.infinites.next();

@@ -2,12 +2,12 @@ use raytracer::compositor::{ColorRGBA, SurfaceFactory};
 
 
 pub struct SurfaceIterator {
-    x_delta: uint,
-    x_off: uint,
-    y_delta: uint,
-    y_off: uint,
-    parent_width: uint,
-    parent_height: uint,
+    x_delta: usize,
+    x_off: usize,
+    y_delta: usize,
+    y_off: usize,
+    parent_width: usize,
+    parent_height: usize,
     background: ColorRGBA<u8>,
 }
 
@@ -37,7 +37,9 @@ impl SurfaceIterator {
     }
 }
 
-impl Iterator<SurfaceFactory> for SurfaceIterator {
+impl Iterator for SurfaceIterator {
+    type Item = SurfaceFactory;
+
     fn next(&mut self) -> Option<SurfaceFactory> {
         let tile = self.current_tile();
         self.incr_tile();

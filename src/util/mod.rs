@@ -3,7 +3,7 @@ use std::num::Float;
 pub mod export;
 pub mod import;
 
-pub fn print_progress(noun: &str, start_time: ::time::Timespec, done: uint, total: uint) {
+pub fn print_progress(noun: &str, start_time: ::time::Timespec, done: usize, total: usize) {
     let remaining_jobs = total - done;
     let progress: f64 = 100f64 * done as f64 / total as f64;
     let current_time = ::time::get_time().sec;
@@ -20,14 +20,14 @@ pub fn print_progress(noun: &str, start_time: ::time::Timespec, done: uint, tota
       println!(" (took {:.2} min)     ", (current_time - start_time.sec) as f64 / 60.0);
     } else {
       print!(" ETA {} min           ", ::std::f64::to_str_exact(remaining_time / 60.0, 2));
-      ::std::io::stdio::flush();
+      ::std::old_io::stdio::flush();
     }
 }
 
-fn make_progress_bar(ratio: f64, length: uint) -> String {
-    let filled = (ratio * length as f64).round() as uint;
-    let mut bar = ::std::string::String::from_char(filled, '|');
-
+fn make_progress_bar(ratio: f64, length: usize) -> String {
+    let filled = (ratio * length as f64).round() as usize;
+    let mut bar = (0..filled).map(|_| '|').collect::<String>();
+    
     for _ in range(0, length - filled) {
         bar.push('-');
     }

@@ -1,6 +1,9 @@
-use std::num::{Float, FloatMath};
-use material::textures::ImageTexture;
+use std::num::Float;
 use std::sync::{Semaphore, Arc};
+use std::sync::mpsc::channel;
+use std::thread::Thread;
+
+use material::textures::ImageTexture;
 use vec3::Vec3;
 
 #[allow(dead_code)]
@@ -21,23 +24,23 @@ impl CubeMap {
         unsafe { faces.set_len(6); }
 
         let (tx, rx) = channel();
-        let sema = Arc::new(Semaphore::new(::std::os::num_cpus() as int));
+        let sema = Arc::new(Semaphore::new(::std::os::num_cpus() as isize));
 
-        for i in range(0u, 6) {
+        for i in range(0us, 6) {
             let task_sema = sema.clone();
             let task_tx = tx.clone();
             let filename = String::from_str(filenames[i].clone());
 
-            spawn(proc() {
+            Thread::spawn(move || {
                 task_sema.acquire();
-                task_tx.send((i, ImageTexture::load(filename[])));
+                task_tx.send((i, ImageTexture::load(&filename[])));
             });
         }
 
-        for _ in range(0u, 6) {
+        for _ in range(0us, 6) {
             let (i, tex) = rx.recv();
             let p = faces.as_mut_ptr();
-            unsafe { ::std::ptr::write::<ImageTexture>(p.offset(i as int), tex); }
+            unsafe { ::std::ptr::write::<ImageTexture>(p.offset(i as isize), tex); }
             sema.release();
         }
 

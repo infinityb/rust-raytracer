@@ -6,5 +6,7 @@ authors = [
     "stacey.ell@gmail.com"
 ]
 
-[dependencies.time]
-git = "http://github.com/rust-lang/time"
+[dependencies]
+time = "*"
+rand = "*"
+rustc-serialize = "*"

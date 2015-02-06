@@ -5,13 +5,14 @@ use raytracer::Ray;
 use std::cmp;
 use std::f64::consts::PI;
 use std::fmt;
-use std::num::{Float, FloatMath};
+use std::num::Float;
+use std::ops::{Add, Mul, Sub, Neg};
 use vec3::Vec3;
 
 /// Stored in row-major, M_(i, j) = i-th row and j-th column
 /// 0-indexed
 pub struct Mat4 {
-    pub m: [[f64, ..4], ..4]
+    pub m: [[f64; 4]; 4]
 }
 
 /// We store the inverse matrix for convenience as per pbrt's recommendation
@@ -65,7 +66,7 @@ impl Mat4 {
         Mat4 { m: m }
     }
 
-    pub fn get(&self, row: uint, column: uint) -> f64 {
+    pub fn get(&self, row: usize, column: usize) -> f64 {
         self.m[row][column]
     }
 
@@ -283,9 +284,9 @@ impl Mat4 {
                 [0.0, 0.0, 0.0, 0.0]]
         };
 
-        for i in range(0u, 4) {
-            for j in range(0u, 4) {
-                for k in range(0u, 4) {
+        for i in range(0us, 4) {
+            for j in range(0us, 4) {
+                for k in range(0us, 4) {
                     out.m[i][j] += a.m[i][k] * b.m[k][j];
                 }
             }
@@ -362,7 +363,9 @@ impl cmp::PartialEq for Mat4 {
     }
 }
 
-impl Add<Mat4, Mat4> for Mat4 {
+impl Add for Mat4 {
+    type Output = Mat4;
+
     fn add(&self, other: &Mat4) -> Mat4 {
         let mut out = Mat4 {
             m: [[0.0, 0.0, 0.0, 0.0],
@@ -395,7 +398,9 @@ impl Add<Mat4, Mat4> for Mat4 {
     }
 }
 
-impl Sub<Mat4, Mat4> for Mat4 {
+impl Sub for Mat4 {
+    type Output = Mat4;
+
     fn sub(&self, other: &Mat4) -> Mat4 {
         let mut out = Mat4 {
             m: [[0.0, 0.0, 0.0, 0.0],
@@ -428,7 +433,9 @@ impl Sub<Mat4, Mat4> for Mat4 {
     }
 }
 
-impl Mul<Mat4, Mat4> for Mat4 {
+impl Mul for Mat4 {
+    type Output = Mat4;
+
     fn mul(&self, other: &Mat4) -> Mat4 {
         Mat4::mult_m(self, other)
     }
@@ -523,7 +530,7 @@ fn test_equality() {
 #[test]
 fn test_inverse() {
     let i = Mat4::identity();
-    assert_eq!(i, i.inverse())
+    assert_eq!(i, i.inverse());
 
     let m = Mat4::new(
         1.0, 0.0, 1.0, 1.0,

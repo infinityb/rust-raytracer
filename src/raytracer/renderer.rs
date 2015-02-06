@@ -1,10 +1,11 @@
 use std::collections::BinaryHeap;
 use std::f64::consts::PI;
 use std::num::Float;
-use std::num::FloatMath;
-use std::rand::{task_rng, Rng, SeedableRng, Isaac64Rng};
+use std::rand::{thread_rng, Rng, SeedableRng, Isaac64Rng};
 use std::sync::Arc;
 use std::sync::TaskPool;
+use std::sync::mpsc::channel;
+
 use light::Light;
 use raytracer::compositor::{ColorRGBA, Surface, SurfaceFactory};
 use raytracer::{Intersection, KDNode, KDTree, Photon, PhotonQuery, Ray};
@@ -16,16 +17,16 @@ pub static EPSILON: f64 = ::std::f64::EPSILON * 10000.0;
 
 
 pub struct Renderer {
-    pub reflect_depth: uint,   // Maximum reflection recursions.
-    pub refract_depth: uint,   // Maximum refraction recursions. A sphere takes up 2 recursions.
-    pub shadow_samples: uint,  // Number of samples for soft shadows and area lights.
-    pub pixel_samples: uint,   // The square of this is the number of samples per pixel.
-    pub photons: uint,         // The number of total photons to shoot for caustics. 0 = off.
-    pub photon_bounces: uint,  // Maximum bounces for photons.
+    pub reflect_depth: usize,   // Maximum reflection recursions.
+    pub refract_depth: usize,   // Maximum refraction recursions. A sphere takes up 2 recursions.
+    pub shadow_samples: usize,  // Number of samples for soft shadows and area lights.
+    pub pixel_samples: usize,   // The square of this is the number of samples per pixel.
+    pub photons: usize,         // The number of total photons to shoot for caustics. 0 = off.
+    pub photon_bounces: usize,  // Maximum bounces for photons.
     pub photon_spread: f64,    // Maximum distance to search for samples from a target point
-    pub photon_samples: uint,  // Maximum number of photon samples for irradiance estimation
-    pub photon_attempts: uint, // Maximum photons to attempt shooting.
-    pub tasks: uint            // Minimum number of tasks to spawn.
+    pub photon_samples: usize,  // Maximum number of photon samples for irradiance estimation
+    pub photon_attempts: usize, // Maximum photons to attempt shooting.
+    pub tasks: usize            // Minimum number of tasks to spawn.
 }
 
 
@@ -36,8 +37,8 @@ impl Renderer {
         let photon_map = Renderer::shoot_photons(photon_scene_local.deref(), self.photons, 0.01,
                                                  self.photon_bounces, self.photon_attempts);
 
-        let mut surface = Surface::new(camera.image_width as uint,
-                                       camera.image_height as uint,
+        let mut surface = Surface::new(camera.image_width as usize,
+                                       camera.image_height as usize,
                                        ColorRGBA::new_rgb(0, 0, 0));
 
         let pool = TaskPool::new(self.tasks);
@@ -53,7 +54,7 @@ impl Renderer {
             let camera_local = camera.clone();
             let photon_map_local = photon_map.clone();
 
-            pool.execute(proc() {
+            pool.execute(move || {
                 child_tx.send(renderer.render_tile(camera_local.clone(),
                     scene_local.deref(), subsurface_factory, &photon_map_local.clone()));
             });
@@ -63,7 +64,7 @@ impl Renderer {
 
         for (i, subsurface) in rx.iter().take(jobs).enumerate() {
             surface.merge(subsurface);
-            ::util::print_progress("Tile", start_time, (i + 1) as uint, jobs);
+            ::util::print_progress("Tile", start_time, (i + 1) as usize, jobs);
         }
         surface
     }
@@ -79,14 +80,14 @@ impl Renderer {
         let mut tile = tile_factory.create();
 
         let mut random_data = [0u64, ..64];
-        for i in range(0u, 64u) {
-            random_data[i] = task_rng().next_u64();
+        for i in range(0us, 64) {
+            random_data[i] = thread_rng().next_u64();
         }
         let mut rng: Isaac64Rng = SeedableRng::from_seed(random_data.clone());
 
-        for rel_y in range(0u, tile.height) {
-            let abs_y = (camera.image_height as uint) - (tile.y_off + rel_y) - 1;
-            for rel_x in range(0u, tile.width) {
+        for rel_y in range(0us, tile.height) {
+            let abs_y = (camera.image_height as usize) - (tile.y_off + rel_y) - 1;
+            for rel_x in range(0us, tile.width) {
                 let abs_x = tile.x_off + rel_x;
 
                 // Supersampling, jitter algorithm
@@ -119,7 +120,7 @@ impl Renderer {
         box tile
     }
 
-    fn shoot_photons(scene: &Scene, photons_per_light: uint, power_threshold: f64, max_bounces: uint, max_attempts: uint) -> Option<Box<KDNode>> {
+    fn shoot_photons(scene: &Scene, photons_per_light: usize, power_threshold: f64, max_bounces: usize, max_attempts: usize) -> Option<Box<KDNode>> {
         if photons_per_light == 0 {
             return None
         }
@@ -159,7 +160,7 @@ impl Renderer {
     }
 
     fn shoot_photon(scene: &Scene, ray: &Ray, caustic_mode: bool, power_threshold: f64,
-                    power: Vec3, max_bounces: uint, bounces: uint, inside: bool) -> Vec<Photon> {
+                    power: Vec3, max_bounces: usize, bounces: usize, inside: bool) -> Vec<Photon> {
         let mut photons: Vec<Photon> = Vec::new();
 
         if bounces > max_bounces || power.len() < power_threshold {
@@ -175,7 +176,7 @@ impl Renderer {
                 let v = hit.v;
 
                 // Randomly decide to reflect/transmit/absorb
-                let mut rng = task_rng();
+                let mut rng = thread_rng();
                 let spin = rng.gen::<f64>();
                 let p_diffuse_reflect = hit.material.global_diffuse();
                 let p_specular_reflect = hit.material.global_specular();
@@ -242,9 +243,9 @@ impl Renderer {
         photons
     }
 
-    fn trace(scene: &Scene, ray: &Ray, shadow_samples: uint,
-             reflect_depth: uint, refract_depth: uint, inside: bool,
-             photon_map: &Option<Box<KDNode>>, photon_spread: f64, max_photons: uint) -> Vec3 {
+    fn trace(scene: &Scene, ray: &Ray, shadow_samples: usize,
+             reflect_depth: usize, refract_depth: usize, inside: bool,
+             photon_map: &Option<Box<KDNode>>, photon_spread: f64, max_photons: usize) -> Vec3 {
 
         if reflect_depth <= 0 || refract_depth <= 0 { return Vec3::zero() }
 
@@ -312,7 +313,7 @@ impl Renderer {
         }
     }
 
-    fn estimate_indirect_irradiance(photon_map: Box<KDNode>, photon_spread: f64, max_photons: uint,
+    fn estimate_indirect_irradiance(photon_map: Box<KDNode>, photon_spread: f64, max_photons: usize,
                                     hit: &Intersection, n: &Vec3, i: &Vec3) -> Vec3 {
 
         let mut nearby_photons: BinaryHeap<PhotonQuery> = BinaryHeap::with_capacity(max_photons + 1);
@@ -343,7 +344,7 @@ impl Renderer {
     }
 
     fn shadow_intensity(scene: &Scene, hit: &Intersection,
-                        light: &Box<Light+Send+Sync>, shadow_samples: uint) -> Vec3 {
+                        light: &Box<Light+Send+Sync>, shadow_samples: usize) -> Vec3 {
 
         if shadow_samples <= 0 { return Vec3::one() }
 

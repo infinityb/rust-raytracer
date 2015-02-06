@@ -9,7 +9,7 @@ use vec3::Vec3;
 use std::collections::BinaryHeap;
 
 
-#[deriving(Clone)]
+#[derive(Clone)]
 pub struct KDNode {
     pub photon: Photon,
     pub bbox: BBox,
@@ -52,7 +52,7 @@ impl KDNode {
     }
 
     // Adapted from Realistic Image Synthesis using Photon Mapping (Henrik Wann Jensen) pp. 73
-    pub fn query_nearest(results: &mut BinaryHeap<PhotonQuery>, current: Box<KDNode>, target: Vec3, max_dist: f64, max_photons: uint) -> () {
+    pub fn query_nearest(results: &mut BinaryHeap<PhotonQuery>, current: Box<KDNode>, target: Vec3, max_dist: f64, max_photons: usize) -> () {
         let delta = (current.bbox.center() - target).len();
 
         let (first_child, second_child) = if delta > 0.0 {
@@ -101,7 +101,7 @@ pub struct KDTree;
 
 // TODO: Generalise this for Prims as well
 impl KDTree {
-    pub fn new_from_photons(point_list: Vec<Photon>, depth: int) -> Option<Box<KDNode>> {
+    pub fn new_from_photons(point_list: Vec<Photon>, depth: isize) -> Option<Box<KDNode>> {
         if point_list.len() == 0 {
             return None;
         }

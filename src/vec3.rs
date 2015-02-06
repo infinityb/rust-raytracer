@@ -1,9 +1,10 @@
 use std::fmt;
 use std::cmp;
-use std::num::{Float, FloatMath};
-use std::rand::{task_rng, Rng};
+use std::num::{Float};
+use std::rand::{thread_rng, Rng};
+use std::ops::{Add, Mul, Sub, Neg};
 
-#[deriving(Clone)]
+#[derive(Clone)]
 pub struct Vec3 {
     pub x: f64,
     pub y: f64,
@@ -114,7 +115,7 @@ impl Vec3 {
     /// Random unit vector around the origin.
     /// Uniform distribution around a sphere.
     pub fn random() -> Vec3 {
-        let mut rng = task_rng();
+        let mut rng = thread_rng();
 
         // Use rejection sampling
         let mut x = (rng.gen::<f64>() - 0.5) * 2.0;
@@ -135,7 +136,9 @@ impl Vec3 {
     }
 }
 
-impl Add<Vec3, Vec3> for Vec3 {
+impl Add for Vec3 {
+    type Output = Vec3;
+
     fn add(&self, other: &Vec3) -> Vec3 {
         Vec3 {
             x: self.x + other.x,
@@ -145,7 +148,9 @@ impl Add<Vec3, Vec3> for Vec3 {
     }
 }
 
-impl Sub<Vec3, Vec3> for Vec3 {
+impl Sub for Vec3 {
+    type Output = Vec3;
+
     fn sub(&self, other: &Vec3) -> Vec3 {
         Vec3 {
             x: self.x - other.x,
@@ -155,7 +160,9 @@ impl Sub<Vec3, Vec3> for Vec3 {
     }
 }
 
-impl Mul<Vec3, Vec3> for Vec3 {
+impl Mul for Vec3 {
+    type Output = Vec3;
+
     fn mul(&self, other: &Vec3) -> Vec3 {
         Vec3 {
             x: self.x * other.x,
@@ -165,7 +172,8 @@ impl Mul<Vec3, Vec3> for Vec3 {
     }
 }
 
-impl Neg<Vec3> for Vec3 {
+impl Neg for Vec3 {
+
     fn neg(&self) -> Vec3 {
         Vec3 {
             x: -self.x,
