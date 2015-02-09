@@ -2,7 +2,6 @@ use light::Light;
 use raytracer::compositor::{ColorRGBA, Surface, SurfaceFactory};
 use raytracer::{Intersection, Ray};
 use scene::{Camera, Scene};
-use std::iter::range;
 use std::num::Float;
 use std::ops::Deref;
 use std::sync::Arc;
@@ -69,22 +68,20 @@ impl Renderer {
 
         let mut tile = tile_factory.create();
 
-        let random_data: Vec<u64> = (0u32..64).map(|_| {
-            thread_rng().next_u64()
-        }).collect();
+        let random_data: Vec<u64> = (0..64).map(|_| thread_rng().next_u64()).collect();
         let mut rng: Isaac64Rng = SeedableRng::from_seed(random_data.as_slice());
 
-        for rel_y in 0usize..tile.height {
-            let abs_y = camera.image_height as usize - (tile.y_off + rel_y) - 1;
-            for rel_x in 0usize..tile.width {
+        for rel_y in 0..tile.height {
+            let abs_y = (camera.image_height as usize) - (tile.y_off + rel_y) - 1;
+            for rel_x in 0..tile.width {
                 let abs_x = tile.x_off + rel_x;
 
                 // Supersampling, jitter algorithm
                 let pixel_width = 1.0 / pixel_samples as f64;
                 let mut color = Vec3::zero();
 
-                for y_subpixel in 0u32..pixel_samples {
-                    for x_subpixel in 0u32..pixel_samples {
+                for y_subpixel in 0..pixel_samples {
+                    for x_subpixel in 0..pixel_samples {
                         // Don't jitter if not antialiasing
                         let (j_x, j_y) = if pixel_samples > 1 {
                             (x_subpixel as f64 * pixel_width + rng.gen::<f64>() * pixel_width,
@@ -179,7 +176,7 @@ impl Renderer {
         let mut shadow = Vec3::zero();
 
         // Take average shadow color after jittering/sampling light position
-        for _ in range(0, shadow_sample_tries) {
+        for _ in 0..shadow_sample_tries {
             // L has to be a unit vector for t_max 1:1 correspondence to
             // distance to light to work. Shadow feelers only search up
             // until light source.
