@@ -160,13 +160,13 @@ fn get_camera_and_scene(config: &SceneConfig) -> Option<(Camera, Scene)> {
             let scene = my_scene::sphere::get_scene();
             Some((camera, scene))
         },
-        "icosahedron" => {
-            // icosahedron skybox test scene
+        "icosphere" => {
+            // icosphere skybox test scene
             let camera = match config.animating {
-                true => my_scene::icosahedron::get_animation_camera(image_width, image_height, fov),
-                false => my_scene::icosahedron::get_camera(image_width, image_height, fov)
+                true => my_scene::icosphere::get_animation_camera(image_width, image_height, fov),
+                false => my_scene::icosphere::get_camera(image_width, image_height, fov)
             };
-            let scene = my_scene::icosahedron::get_scene();
+            let scene = my_scene::icosphere::get_scene();
             Some((camera, scene))
         },
         "fresnel" => {
