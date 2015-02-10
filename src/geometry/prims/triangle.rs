@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+use std::num::Float;
 use geometry::bbox::{union_point, union_points, BBox};
 use geometry::prim::Prim;
 use material::Material;
@@ -28,6 +29,10 @@ impl Triangle {
     /// All three normals at vertices are perpendicular to the triangle plane
     pub fn auto_normal(v0: Vec3, v1: Vec3, v2: Vec3, uv0: (f64, f64), uv1: (f64, f64), uv2: (f64, f64), material: Box<Material+Send+Sync>) -> Triangle {
         let n = (v1 - v0).cross(&(v2 - v0));
+        assert!(!n.x.is_nan(), "normal.x must not be NaN");
+        assert!(!n.y.is_nan(), "normal.y must not be NaN");
+        assert!(!n.z.is_nan(), "normal.z must not be NaN");
+
         let (ut0, vt0) = uv0;
         let (ut1, vt1) = uv1;
         let (ut2, vt2) = uv2;
