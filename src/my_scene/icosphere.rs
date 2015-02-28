@@ -1,6 +1,7 @@
 #![allow(unused_imports)]
 
 use geometry::IcosahedronBuilder;
+use geometry::icosahedron::painters;
 use geometry::prim::{Prim};
 use geometry::prims::{Plane, Sphere, Triangle};
 use light::light::{Light};
@@ -14,33 +15,23 @@ use scene::{Camera, Scene};
 use vec3::Vec3;
 
 // Skybox test scene
-pub fn get_camera(image_width: isize, image_height: isize, fov: f64) -> Camera {
+pub fn get_camera(image_width: u32, image_height: u32, fov: f64) -> Camera {
     let up = Vec3 { x: 0.0, y: 1.0, z: 0.0 }; // y-up
     Camera::new(
-        Vec3 { x: 0.0, y: 0.0, z: 10.0 },
+        Vec3 { x: -10.0, y: 10.0, z: 10.0 },
         Vec3 { x: 0.0, y: 0.0, z: 0.0 },
         up,
         fov,
         image_width,
-        image_height
+        image_height,
     )
-
-    // let up = Vec3 { x: 0.0, y: 0.0, z: 1.0 }; // z-up
-    // Camera::new(
-    //     Vec3 { x: 0.0, y: 10.0, z: 0.0 },
-    //     Vec3 { x: 0.0, y: 0.0, z: 0.0 },
-    //     up,
-    //     fov,
-    //     image_width,
-    //     image_height
-    // )
 }
 
-pub fn get_animation_camera(image_width: isize, image_height: isize, fov: f64) -> Camera {
+pub fn get_animation_camera(image_width: u32, image_height: u32, fov: f64) -> Camera {
     // State at time t=0
     // A keyframe at time t=0 is automatically created when insert_keyframes is called
     let camera = Camera::new_with_keyframes(
-        Vec3 { x: 0.0, y: 0.0, z: 10.0 },
+        Vec3 { x: -10.0, y: 10.0, z: 10.0 },
         Vec3 { x: 0.0, y: 0.0, z: 0.0 },
         Vec3 { x: 0.0, y: 1.0, z: 0.0 },
         fov,
@@ -49,25 +40,25 @@ pub fn get_animation_camera(image_width: isize, image_height: isize, fov: f64) -
         vec![
             CameraKeyframe {
                 time: 2.5,
-                position: Vec3 { x: 10.0, y: 0.0, z: 0.0 },
+                position: Vec3 { x: 10.0, y: 10.0, z: 0.0 },
                 look_at: Vec3 { x: 0.0, y: 0.0, z: 0.0 },
                 up: Vec3 { x: 0.0, y: 1.0, z: 0.0 }
             },
             CameraKeyframe {
                 time: 5.0,
-                position: Vec3 { x: 0.0, y: 0.0, z: -10.0 },
+                position: Vec3 { x: 0.0, y: 10.0, z: -10.0 },
                 look_at: Vec3 { x: 0.0, y: 0.0, z: 0.0 },
                 up: Vec3 { x: 0.0, y: 1.0, z: 0.0 }
             },
             CameraKeyframe {
                 time: 7.5,
-                position: Vec3 { x: -10.0, y: 0.0, z: 0.0 },
+                position: Vec3 { x: -10.0, y: 10.0, z: 0.0 },
                 look_at: Vec3 { x: 0.0, y: 0.0, z: 0.0 },
                 up: Vec3 { x: 0.0, y: 1.0, z: 0.0 }
             },
             CameraKeyframe {
                 time: 10.0,
-                position: Vec3 { x: 0.0, y: 0.0, z: 10.0 },
+                position: Vec3 { x: 0.0, y: 10.0, z: 10.0 },
                 look_at: Vec3 { x: 0.0, y: 0.0, z: 0.0 },
                 up: Vec3 { x: 0.0, y: 1.0, z: 0.0 }
             },
@@ -92,7 +83,7 @@ pub fn get_scene() -> Scene {
     for &z in [-1.0, 0.0, 1.0].iter() {
         for &y in [-1.0, 0.0, 1.0].iter() {
             for &x in [-1.0, 0.0, 1.0].iter() {
-                if x * y * z < 0.0 {
+                if x * y * z < 0.0 && 0.0 < y {
                     lights.push(box SphereLight {
                         position: Vec3 { x: 300.0 * x, y: 600.0 * y, z: 900.0 * z },
                         color: Vec3::one() / 11.0,
@@ -100,19 +91,23 @@ pub fn get_scene() -> Scene {
                     });
                 }
 
-                prims.push(box Sphere {
-                    center: Vec3 { x: 1.66 * x, y: 1.66 * y, z: 1.66 * z },
-                    radius: 0.35,
-                    material: box shiny.clone()
-                });
+                // prims.push(box Sphere {
+                //     center: Vec3 { x: 2.5 * x, y: 2.5 * y, z: 2.5 * z },
+                //     radius: 0.15,
+                //     material: box shiny.clone()
+                // });
             }
         }
     }    
 
+    let paint = painters::TexturePainter::new(
+        ImageTexture::load("./earthmap_hires.ppm").image);
+
     prims.extend(IcosahedronBuilder::new()
         .center(Vec3 { x: 0.0, y: 0.0, z: 0.0 })
-        .radius(1.3)
-        .max_depth(3)
+        .radius(3.5)
+        .max_depth(9)
+        .paint(paint)
         .build_sphere()
         .map(|prim| Box::new(prim) as Box<Prim+Send+Sync>));
 

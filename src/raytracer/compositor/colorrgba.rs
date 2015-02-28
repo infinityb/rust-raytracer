@@ -82,6 +82,31 @@ impl ColorRGBA<u8> {
         let a = ((color >>  0) & 0xFF) as u8;
         ColorRGBA { r: r, g: g, b: b, a: a }
     }
+
+    pub fn floatify(&self) -> ColorRGBA<f64> {
+        let (r, g, b, a) = (self.r, self.g, self.b, self.a);
+        ColorRGBA::new_rgba(
+            r as f64 / 255.0, g as f64 / 255.0,
+            b as f64 / 255.0, a as f64 / 255.0)
+    }
+}
+
+impl ColorRGBA<f64> {
+    pub fn from_hsv(h: f64, s: f64, v: f64) -> ColorRGBA<f64> {
+        let c = v * s;
+        let hp = h / 60.0;
+        let x = c * (1.0 - (hp % 2.0 - 1.0).abs());
+        let (r, g, b) = match hp {
+            hp if 0.0 <= hp && hp < 1.0 => (c, x, 0.0),
+            hp if 1.0 <= hp && hp < 2.0 => (x, c, 0.0),
+            hp if 2.0 <= hp && hp < 3.0 => (0.0, c, x),
+            hp if 3.0 <= hp && hp < 4.0 => (0.0, x, c),
+            hp if 4.0 <= hp && hp < 5.0 => (x, 0.0, c),
+            hp if 5.0 <= hp && hp < 6.0 => (c, 0.0, x),
+            _ => unreachable!(),
+        };
+        ColorRGBA::new_rgb(r, g, b)
+    }
 }
 
 // Maybe later?: ColorRGBA<f64>.quantize() -> ColorRGBA<uint>

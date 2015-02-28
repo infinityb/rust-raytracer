@@ -1,5 +1,6 @@
 use material::materials::FlatMaterial;
 use geometry::prims::Triangle;
+use raytracer::compositor::ColorRGBA;
 use vec3::Vec3;
 
 static ISOCAHEDRON_FACES: [PureTriangle; 20] = [
@@ -63,10 +64,70 @@ impl PureTriangle {
     }
 }
 
+pub trait Paint {
+    fn get_color(&self, path: &[u8]) -> ColorRGBA<f64>;
+}
+
+struct DefaultPaint;
+
+impl Paint for DefaultPaint {
+    fn get_color(&self, path: &[u8]) -> ColorRGBA<f64> {
+        use std::iter::AdditiveIterator;
+
+        let div = 1.0 + path[1..].iter().map(|&x| if x == 3 { 1.0 } else { 0.0 }).sum();
+        ColorRGBA::new_rgb(1.0 / div, 0.0, 0.0)
+    }
+}
+
+pub mod painters {
+    use std::num::Float;
+    // use std::iter::AdditiveIterator;
+    use raytracer::compositor::{ColorRGBA, Surface};
+    use super::{Paint, PureTriangle, ISOCAHEDRON_FACES};
+
+    fn path_to_triangle(path: &[u8]) -> PureTriangle {
+        assert!(0 < path.len());
+        let mut triangle = ISOCAHEDRON_FACES[path[0] as usize];
+        for idx in path[1..].iter() {
+            triangle = triangle.split()[*idx as usize];
+        }
+        triangle
+    }
+
+    pub struct TexturePainter {
+        surface: Surface,
+    }
+
+    impl TexturePainter {
+        pub fn new(surface: Surface) -> TexturePainter {
+            TexturePainter { surface: surface }
+        }
+    }
+
+    impl Paint for TexturePainter {
+        fn get_color(&self, path: &[u8]) -> ColorRGBA<f64> {
+            let triangle = path_to_triangle(path);
+            let avg = (triangle.0 + triangle.1 + triangle.2) / 3.0;
+
+            let sw = (self.surface.width - 1) as f64;
+            let sh = (self.surface.height - 1) as f64;
+
+            let lat = 90.0 - (avg.z / avg.len()).acos().to_degrees();
+            let lon = avg.y.atan2(avg.x).to_degrees();
+
+            let x = (sw * (lon + 180.0) / 360.0).round() as usize;
+            let y = (sh * (lat + 90.0) / 180.0).round() as usize;
+
+            self.surface[(x, y)].floatify()
+        }
+    }
+}
+
 pub struct IcosahedronBuilder {
     center: Vec3,
     radius: f64,
     max_depth: i32,
+    paint: Box<Paint+'static>,
 }
 
 impl IcosahedronBuilder {
@@ -75,46 +136,54 @@ impl IcosahedronBuilder {
             center: Vec3::zero(),
             radius: 1.0,
             max_depth: 4,
+            paint: box DefaultPaint,
         }
     }
 
-    pub fn radius(&mut self, radius: f64) -> &mut IcosahedronBuilder {
+    pub fn radius(mut self, radius: f64) -> IcosahedronBuilder {
         self.radius = radius;
         self
     }
 
-    pub fn center(&mut self, center: Vec3) -> &mut IcosahedronBuilder {
+    pub fn center(mut self, center: Vec3) -> IcosahedronBuilder {
         self.center = center;
         self
     }
 
-    pub fn max_depth(&mut self, max_depth: i32) -> &mut IcosahedronBuilder {
+    pub fn max_depth(mut self, max_depth: i32) -> IcosahedronBuilder {
         self.max_depth = max_depth;
         self
     }
 
+    pub fn paint<P>(mut self, paint: P) -> IcosahedronBuilder where P: Paint+'static {
+        self.paint = box paint;
+        self
+    }
+
     #[allow(unused)]
-    pub fn build(&self) -> IcosahedronIter {
+    pub fn build(self) -> IcosahedronIter {
         let initial_stack = ISOCAHEDRON_FACES.iter().cloned()
             .enumerate()
-            .map(|(symbol, st)| (0, symbol as i32, st)).collect::<Vec<_>>();
+            .map(|(symbol, st)| (vec![symbol as u8], st)).collect::<Vec<_>>();
 
         IcosahedronIter::new(self.center, BaseIcosahedronIter {
             radius: self.radius,
             max_depth: self.max_depth,
             face_stack: initial_stack,
+            paint: self.paint,
         })
     }
 
-    pub fn build_sphere(&self) -> IcosphereIter {
+    pub fn build_sphere(self) -> IcosphereIter {
         let initial_stack = ISOCAHEDRON_FACES.iter().cloned()
             .enumerate()
-            .map(|(symbol, st)| (0, symbol as i32, st)).collect::<Vec<_>>();
+            .map(|(symbol, st)| (vec![symbol as u8], st)).collect::<Vec<_>>();
 
         IcosphereIter::new(self.center, BaseIcosahedronIter {
             radius: self.radius,
             max_depth: self.max_depth,
             face_stack: initial_stack,
+            paint: self.paint,
         })
     }
 }
@@ -122,24 +191,26 @@ impl IcosahedronBuilder {
 pub struct BaseIcosahedronIter {
     radius: f64,
     max_depth: i32,
-    face_stack: Vec<(i32, i32, PureTriangle)>,
+    face_stack: Vec<(Vec<u8>, PureTriangle)>,
+    paint: Box<Paint+'static>,
 }
 
 impl Iterator for BaseIcosahedronIter {
-    type Item = (i32, i32, PureTriangle);
+    type Item = (Vec<u8>, PureTriangle);
 
-    fn next(&mut self) -> Option<(i32, i32, PureTriangle)> {
+    fn next(&mut self) -> Option<(Vec<u8>, PureTriangle)> {
         loop {
-            let (depth, symbol, trixel) = match self.face_stack.pop() {
-                Some(triple) => triple,
+            let (path, trixel) = match self.face_stack.pop() {
+                Some(face_data) => face_data,
                 None => return None,
             };
-            if depth < self.max_depth {
+            if path.len() < self.max_depth as usize {
                 for (symbol, &subtrixel) in trixel.split().iter().enumerate() {
-                    self.face_stack.push((depth + 1, symbol as i32, subtrixel));
+                    let new_path = path.clone() + &[symbol as u8];
+                    self.face_stack.push((new_path, subtrixel));
                 }
             } else {
-                self.face_stack.push((depth, symbol, trixel));
+                self.face_stack.push((path, trixel));
                 break;
             }
         }
@@ -162,14 +233,8 @@ impl IcosahedronIter {
         }
     }
 
-    fn make_triangle(face: PureTriangle, symbol: i32, center: Vec3) -> Triangle {
-        let material = FlatMaterial { color: match symbol % 4 {
-            0 => Vec3 { x: 0.6078, y: 0.3490, z: 0.7137 },
-            1 => Vec3 { x: 0.5294, y: 0.8275, z: 0.4863 },
-            2 => Vec3 { x: 0.1725, y: 0.2431, z: 0.3137 },
-            3 => Vec3 { x: 0.8118, y: 0.0000, z: 0.0588 },
-            _ => unreachable!(),
-        }};
+    fn make_triangle(&self, face: PureTriangle, path: &[u8], center: Vec3) -> Triangle {
+        let material = FlatMaterial { color: self.base.paint.get_color(path).to_vec3() };
         let vecs = face.to_3vec3(center);
         Triangle::auto_normal(
             vecs.0, vecs.1, vecs.2,
@@ -183,8 +248,8 @@ impl Iterator for IcosahedronIter {
     type Item = Triangle;
 
     fn next(&mut self) -> Option<Triangle> {
-        self.base.next().and_then(|(_, symbol, triangle)| {
-           Some(IcosahedronIter::make_triangle(triangle, symbol, self.center))
+        self.base.next().and_then(|(path, triangle)| {
+           Some(self.make_triangle(triangle, path.as_slice(), self.center))
         })
     }
 }
@@ -202,14 +267,8 @@ impl IcosphereIter {
         }
     }
 
-    fn make_triangle(face: PureTriangle, symbol: i32, radius: f64, center: Vec3) -> Triangle {
-        let material = FlatMaterial { color: match symbol {
-            0 => Vec3 { x: 0.6078, y: 0.3490, z: 0.7137 },
-            1 => Vec3 { x: 0.5294, y: 0.8275, z: 0.4863 },
-            2 => Vec3 { x: 0.1725, y: 0.2431, z: 0.3137 },
-            3 => Vec3 { x: 0.8118, y: 0.0000, z: 0.0588 },
-            _ => unreachable!(),
-        }};
+    fn make_triangle(&self, face: PureTriangle, path: &[u8], radius: f64, center: Vec3) -> Triangle {
+        let material = FlatMaterial { color: self.base.paint.get_color(path).to_vec3() };
         let vecs = face.set_radius(radius).to_3vec3(center);
 
         Triangle::auto_normal(
@@ -224,9 +283,10 @@ impl Iterator for IcosphereIter {
     type Item = Triangle;
 
     fn next(&mut self) -> Option<Triangle> {
-        self.base.next().and_then(|(_, symbol, triangle)| {
-            Some(IcosphereIter::make_triangle(triangle, symbol, self.base.radius, self.center))
+        self.base.next().and_then(|(path, triangle)| {
+            Some(self.make_triangle(triangle, path.as_slice(), self.base.radius, self.center))
         })
     }
 }
+
 

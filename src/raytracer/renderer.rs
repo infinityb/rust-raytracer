@@ -52,7 +52,7 @@ impl Renderer {
         let start_time = ::time::get_time();
 
         for (i, subsurface) in rx.iter().enumerate() {
-            surface.merge(subsurface);
+            surface.merge(&subsurface);
             ::util::print_progress("Tile", start_time.clone(), (i + 1) as usize, jobs);
         }
         surface
