@@ -86,7 +86,7 @@ impl Prim for Triangle {
                 u: u,
                 v: v,
                 position: intersection_point,
-                material: &self.material
+                material: &*self.material
             })
         }
     }

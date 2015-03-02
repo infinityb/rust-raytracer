@@ -39,7 +39,7 @@ impl Prim for Plane {
                 u: u,
                 v: v,
                 position: intersection_point,
-                material: &self.material
+                material: &*self.material
             })
         }
     }
