@@ -23,7 +23,7 @@ impl CubeMap {
         unsafe { faces.set_len(6); }
 
         let (tx, rx) = channel();
-        let sema = Arc::new(Semaphore::new(::std::os::num_cpus() as isize));
+        let sema = Arc::new(Semaphore::new(::num_cpus::get() as isize));
 
         for i in 0usize..6 {
             let task_sema = sema.clone();

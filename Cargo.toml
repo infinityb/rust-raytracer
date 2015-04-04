@@ -10,3 +10,4 @@ authors = [
 time = "*"
 rustc-serialize = "*"
 rand = "*"
+num_cpus = "*"

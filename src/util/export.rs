@@ -8,8 +8,7 @@ pub fn to_ppm(surface: Surface, filename: &str) {
         "P3 {} {} {}\n", surface.width, surface.height,
         channel_max);
 
-    let path = Path::new(filename);
-    let mut f = match File::open_mode(&path, Truncate, Write) {
+    let mut f = match File::open_mode(filename, Truncate, Write) {
         Ok(f)  => f,
         Err(e) => panic!("File error: {}", e),
     };

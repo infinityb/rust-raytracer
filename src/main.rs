@@ -1,10 +1,9 @@
-#![feature(box_syntax, collections, core, env, old_io, old_path, os, std_misc, str_words)]
 #![deny(unused_imports)]
 
 extern crate rand;
-extern crate "rustc-serialize" as rustc_serialize;
+extern crate rustc_serialize;
 extern crate time;
-
+extern crate num_cpus;
 
 use scene::{Camera, Scene};
 
@@ -48,23 +47,17 @@ struct SceneConfig {
 }
 
 fn parse_args(args: env::Args) -> Result<ProgramArgs, String> {
-    let argl = args.collect::<Vec<String>>();
-    let (program_name, rest) = match argl.as_slice() {
+    let args = args.collect::<Vec<String>>();
+    if args.len() == 0 {
+        panic!("Args do not even include a program name");
+    }
+
+    let program_name = args[0];
+    match args.len() < 2 {
         // I wouldn't expect this in the wild
-        [] => panic!("Args do not even include a program name"),
-        [ref program_name, rest..] => (
-            program_name,
-            rest
-        )
-    };
-    match rest.len() {
-        0 => Err(format!("Usage: {} scene_config.json", program_name)),
-        1 => {
-            let filestring: String = rest[0].clone();
-            Ok(ProgramArgs {
-                config_file: filestring
-            })
-        },
+        0 => unreachable!(),
+        1 => Err(format!("Usage: {} scene_config.json", program_name)),
+        2 => Ok(ProgramArgs { config_file: args[1].clone() }),
         _ => Err(format!("Usage: {} scene_config.json", program_name)),
     }
 }
@@ -186,8 +179,7 @@ fn main() {
             return
         }
     };
-    let config_path = Path::new(program_args.config_file);
-    let mut file_handle = match File::open(&config_path) {
+    let mut file_handle = match File::open(&program_args.config_file) {
         Ok(file) => file,
         Err(err) => {
             let mut stderr = old_io::stderr();
@@ -249,7 +241,7 @@ fn main() {
         shadow_samples: config.shadow_samples,
         pixel_samples: config.pixel_samples,
         // Number of tasks to spawn. Will use up max available cores.
-        tasks: os::num_cpus()
+        tasks: ::num_cpus::get()
     };
 
     if config.animating {
@@ -264,7 +256,7 @@ fn main() {
         };
 
         println!("Animating - tasks: {}, FPS: {}, start: {}s, end:{}s, starting frame: {}",
-                 os::num_cpus(), animator.fps, animator.animate_from, animator.animate_to,
+                 ::num_cpus::get(), animator.fps, animator.animate_from, animator.animate_to,
                  animator.starting_frame_number);
         animator.animate(camera, shared_scene, config.output_file.as_slice());
         let render_time = ::time::get_time().sec;
@@ -272,7 +264,7 @@ fn main() {
                  render_time, render_time - scene_time);
     } else {
         // Still frame
-        println!("Rendering with {} tasks...", os::num_cpus());
+        println!("Rendering with {} tasks...", ::num_cpus::get());
         let image_data = renderer.render(camera, shared_scene);
         let render_time = ::time::get_time().sec;
         println!("Render done at {} ({}s)...\nWriting file...",

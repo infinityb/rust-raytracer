@@ -2,12 +2,10 @@ use light::Light;
 use raytracer::compositor::{ColorRGBA, Surface, SurfaceFactory};
 use raytracer::{Intersection, Ray};
 use scene::{Camera, Scene};
-use std::iter::range;
 use std::num::Float;
 use std::ops::Deref;
 use std::sync::Arc;
 use std::sync::mpsc::channel;
-use std::sync::TaskPool;
 use vec3::Vec3;
 use rand::{thread_rng, Rng, SeedableRng, Isaac64Rng};
 
@@ -179,7 +177,7 @@ impl Renderer {
         let mut shadow = Vec3::zero();
 
         // Take average shadow color after jittering/sampling light position
-        for _ in range(0, shadow_sample_tries) {
+        for _ in 0..shadow_sample_tries {
             // L has to be a unit vector for t_max 1:1 correspondence to
             // distance to light to work. Shadow feelers only search up
             // until light source.

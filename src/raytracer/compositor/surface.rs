@@ -74,9 +74,9 @@ impl Surface {
         let x_len: usize = min(tile.width, self.width - tile.x_off);
         let y_len: usize = min(tile.height, self.height - tile.y_off);
 
-        for src_y in range(0, y_len) {
+        for src_y in 0..y_len {
             let dst_y = tile.y_off + src_y;
-            for src_x in range(0, x_len) {
+            for src_x in 0..x_len {
                 let dst_x = tile.x_off + src_x;
                 self[(dst_x, dst_y)] = tile[(src_x, src_y)]
             }
