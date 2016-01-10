@@ -2,6 +2,7 @@ use std::f64::INFINITY;
 use raytracer::Intersection;
 use scene::Scene;
 use vec3::Vec3;
+use rtree::{Vec3 as RTreeVec3, Ray as RTreeRay};
 
 #[cfg(test)]
 use geometry::prim::Prim;
@@ -41,12 +42,27 @@ impl Ray {
         }
     }
 
+    pub fn to_rtree_ray(&self) -> RTreeRay {
+        RTreeRay::new(RTreeVec3 {
+            x: self.origin.x,
+            y: self.origin.y,
+            z: self.origin.z,
+        }, RTreeVec3 {
+            x: self.direction.x,
+            y: self.direction.y,
+            z: self.direction.z,
+        })
+    }
+
     pub fn get_nearest_hit<'a>(&'a self, scene: &'a Scene) -> Option<Intersection<'a>> {
+        // same layout, hack hack
+        let ray: &'a RTreeRay = unsafe { ::std::mem::transmute(self) };
+
         let t_min = 0.000001;
         let mut nearest_hit = None;
         let mut nearest_t = INFINITY;
 
-        for prim in scene.octree.intersect_iter(self) {
+        for prim in scene.octree.intersect_iter(&ray) {
             let intersection = prim.intersects(self, t_min, nearest_t);
 
             nearest_hit = match intersection {

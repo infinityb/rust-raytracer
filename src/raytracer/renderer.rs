@@ -200,12 +200,16 @@ impl Renderer {
             // until light source.
             let sampled_light_position = light.position();
             let shadow_l = (sampled_light_position - hit.position).unit();
+
+
             let shadow_ray = Ray::new(hit.position, shadow_l);
+            let shadow_ray_rtree = shadow_ray.to_rtree_ray();
+
             let distance_to_light = (sampled_light_position - hit.position).len();
 
             // Check against candidate primitives in scene for occlusion
             // and multiply shadow color by occluders' shadow colors
-            let candidate_nodes = scene.octree.intersect_iter(&shadow_ray);
+            let candidate_nodes = scene.octree.intersect_iter(&shadow_ray_rtree);
 
             shadow = shadow + candidate_nodes.fold(Vec3::one(), |shadow_acc, prim| {
                 let occlusion = prim.intersects(&shadow_ray, EPSILON, distance_to_light);
