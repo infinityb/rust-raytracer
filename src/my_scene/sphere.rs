@@ -9,7 +9,7 @@ use material::Texture;
 use material::textures::{CheckerTexture, CubeMap, UVTexture, ImageTexture};
 use raytracer::animator::CameraKeyframe;
 use raytracer::animator::easing::Easing;
-use scene::{Camera, Scene};
+use scene::{Camera, AnimatedCamera, Scene};
 use vec3::Vec3;
 
 // Skybox test scene
@@ -35,49 +35,47 @@ pub fn get_camera(image_width: u32, image_height: u32, fov: f64) -> Camera {
     // )
 }
 
-pub fn get_animation_camera(image_width: u32, image_height: u32, fov: f64) -> Camera {
+pub fn get_animation_camera(image_width: u32, image_height: u32, fov: f64) -> AnimatedCamera {
     // State at time t=0
     // A keyframe at time t=0 is automatically created when insert_keyframes is called
-    let camera = Camera::new_with_keyframes(
+    let camera = Camera::new(
         Vec3 { x: 0.0, y: 0.0, z: 10.0 },
         Vec3 { x: 0.0, y: 0.0, z: 0.0 },
         Vec3 { x: 0.0, y: 1.0, z: 0.0 },
         fov,
         image_width,
         image_height,
-        vec![
-            CameraKeyframe {
-                time: 2.5,
-                position: Vec3 { x: 10.0, y: 0.0, z: 0.0 },
-                look_at: Vec3 { x: 0.0, y: 0.0, z: 0.0 },
-                up: Vec3 { x: 0.0, y: 1.0, z: 0.0 },
-                easing: Easing::linear()
-            },
-            CameraKeyframe {
-                time: 5.0,
-                position: Vec3 { x: 0.0, y: 0.0, z: -10.0 },
-                look_at: Vec3 { x: 0.0, y: 0.0, z: 0.0 },
-                up: Vec3 { x: 0.0, y: 1.0, z: 0.0 },
-                easing: Easing::linear()
-            },
-            CameraKeyframe {
-                time: 7.5,
-                position: Vec3 { x: -10.0, y: 0.0, z: 0.0 },
-                look_at: Vec3 { x: 0.0, y: 0.0, z: 0.0 },
-                up: Vec3 { x: 0.0, y: 1.0, z: 0.0 },
-                easing: Easing::linear()
-            },
-            CameraKeyframe {
-                time: 10.0,
-                position: Vec3 { x: 0.0, y: 0.0, z: 10.0 },
-                look_at: Vec3 { x: 0.0, y: 0.0, z: 0.0 },
-                up: Vec3 { x: 0.0, y: 1.0, z: 0.0 },
-                easing: Easing::linear()
-            },
-        ]
     );
-
-    camera
+    AnimatedCamera::new(camera, vec![   
+        CameraKeyframe {
+            time: 2.5,
+            position: Vec3 { x: 10.0, y: 0.0, z: 0.0 },
+            look_at: Vec3 { x: 0.0, y: 0.0, z: 0.0 },
+            up: Vec3 { x: 0.0, y: 1.0, z: 0.0 },
+            easing: Easing::linear()
+        },
+        CameraKeyframe {
+            time: 5.0,
+            position: Vec3 { x: 0.0, y: 0.0, z: -10.0 },
+            look_at: Vec3 { x: 0.0, y: 0.0, z: 0.0 },
+            up: Vec3 { x: 0.0, y: 1.0, z: 0.0 },
+            easing: Easing::linear()
+        },
+        CameraKeyframe {
+            time: 7.5,
+            position: Vec3 { x: -10.0, y: 0.0, z: 0.0 },
+            look_at: Vec3 { x: 0.0, y: 0.0, z: 0.0 },
+            up: Vec3 { x: 0.0, y: 1.0, z: 0.0 },
+            easing: Easing::linear()
+        },
+        CameraKeyframe {
+            time: 10.0,
+            position: Vec3 { x: 0.0, y: 0.0, z: 10.0 },
+            look_at: Vec3 { x: 0.0, y: 0.0, z: 0.0 },
+            up: Vec3 { x: 0.0, y: 1.0, z: 0.0 },
+            easing: Easing::linear()
+        },
+    ])
 }
 
 pub fn get_scene() -> Scene {

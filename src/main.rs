@@ -8,7 +8,7 @@ extern crate rustc_serialize;
 extern crate threadpool;
 extern crate time;
 
-use scene::{Camera, Scene};
+use scene::{Camera, AnimatedCamera, Scene};
 
 use std::fs::File;
 use std::io::{self, Read, Write};
@@ -66,7 +66,12 @@ fn parse_args(args: env::Args) -> Result<ProgramArgs, String> {
     }
 }
 
-fn get_camera_and_scene(config: &SceneConfig) -> Option<(Camera, Scene)> {
+enum CameraHack {
+    Static(Camera),
+    Animated(AnimatedCamera),
+}
+
+fn get_camera_and_scene(config: &SceneConfig) -> Option<(CameraHack, Scene)> {
     let scene_name = config.name.clone();
     let (image_width, image_height) = config.size;
     let fov = config.fov;
@@ -79,45 +84,45 @@ fn get_camera_and_scene(config: &SceneConfig) -> Option<(Camera, Scene)> {
             // Box. Simplest scene with 9 primitives, no octree
             let camera = my_scene::cornell::get_camera(image_width, image_height, fov);
             let scene = my_scene::cornell::get_scene();
-            Some((camera, scene))
+            Some((CameraHack::Static(camera), scene))
         },
         "bunny" => {
             // Bunny. Around 300 primitives, 2 lights. Uses octree. Has skybox, textures are
             // in another repository.
             let camera = my_scene::bunny::get_camera(image_width, image_height, fov);
             let scene = my_scene::bunny::get_scene();
-            Some((camera, scene))
+            Some((CameraHack::Static(camera), scene))
         },
         "teapot" => {
             // Teapot. Around 2500 polygons. Octree helps a bit. Has skybox.
             let camera = my_scene::teapot::get_teapot_camera(image_width, image_height, fov);
             let scene = my_scene::teapot::get_teapot_scene();
-            Some((camera, scene))
+            Some((CameraHack::Static(camera), scene))
         },
         "cow" => {
             // Cow. Around 5000 polygons. Octree helps considerably.
             let camera = my_scene::cow::get_camera(image_width, image_height, fov);
             let scene = my_scene::cow::get_scene();
-            Some((camera, scene))
+            Some((CameraHack::Static(camera), scene))
         },
         "lucy" => {
             // Lucy. Around 525814+1 primitives. Octree pretty much required. The model is included
             // separately, in another repository. Has skybox.
             let camera = my_scene::lucy::get_camera(image_width, image_height, fov);
             let scene = my_scene::lucy::get_scene();
-            Some((camera, scene))
+            Some((CameraHack::Static(camera), scene))
         },
         "sponza" => {
             // Sponza. Around 28K triangles, but more complex than Lucy. 2 lights.
             let camera = my_scene::sponza::get_camera(image_width, image_height, fov);
             let scene = my_scene::sponza::get_scene();
-            Some((camera, scene))
+            Some((CameraHack::Static(camera), scene))
         },
         "sibenik" => {
             // Sibenik, around 70K triangles, no texture work, 3 lights.
             let camera = match config.animating {
-                true => my_scene::sibenik::get_animation_camera(image_width, image_height, fov),
-                false => my_scene::sibenik::get_camera(image_width, image_height, fov)
+                true => CameraHack::Animated(my_scene::sibenik::get_animation_camera(image_width, image_height, fov)),
+                false => CameraHack::Static(my_scene::sibenik::get_camera(image_width, image_height, fov)),
             };
             let scene = my_scene::sibenik::get_scene();
             Some((camera, scene))
@@ -126,42 +131,42 @@ fn get_camera_and_scene(config: &SceneConfig) -> Option<(Camera, Scene)> {
             // Heptoroid, 114688 tris, 57302 verts
             let camera = my_scene::heptoroid::get_camera(image_width, image_height, fov);
             let scene = my_scene::heptoroid::get_scene("white");
-            Some((camera, scene))
+            Some((CameraHack::Static(camera), scene))
         },
         "heptoroid-shiny" => {
             // Shiny heptoroid, 114688 tris, 57302 verts
             let camera = my_scene::heptoroid::get_camera(image_width, image_height, fov);
             let scene = my_scene::heptoroid::get_scene("shiny");
-            Some((camera, scene))
+            Some((CameraHack::Static(camera), scene))
         },
         "heptoroid-refractive" => {
             // Refractive heptoroid, you want to limit your reflect levels (2/3?)
             // and up your refract levels (10/16?) for this
             let camera = my_scene::heptoroid::get_camera(image_width, image_height, fov);
             let scene = my_scene::heptoroid::get_scene("refractive");
-            Some((camera, scene))
+            Some((CameraHack::Static(camera), scene))
         },
         "tachikoma" => {
             // Shiny heptoroid, 114688 tris, 57302 verts
             // You can forget about refractions, it's too complex a scene
             let camera = my_scene::tachikoma::get_camera(image_width, image_height, fov);
             let scene = my_scene::tachikoma::get_scene();
-            Some((camera, scene))
+            Some((CameraHack::Static(camera), scene))
         },
         "sphere" => {
             // Sphere skybox test scene
             let camera = match config.animating {
-                true => my_scene::sphere::get_animation_camera(image_width, image_height, fov),
-                false => my_scene::sphere::get_camera(image_width, image_height, fov)
+                true => CameraHack::Animated(my_scene::sphere::get_animation_camera(image_width, image_height, fov)),
+                false => CameraHack::Static(my_scene::sphere::get_camera(image_width, image_height, fov))
             };
             let scene = my_scene::sphere::get_scene();
             Some((camera, scene))
         },
         "fresnel" => {
-            // Fresnel test scene
+            // Fresnel test scene :: (camera)
             let camera = match config.animating {
-                true => my_scene::fresnel::get_animation_camera(image_width, image_height, fov),
-                false => my_scene::fresnel::get_camera(image_width, image_height, fov)
+                true => CameraHack::Animated(my_scene::fresnel::get_animation_camera(image_width, image_height, fov)),
+                false => CameraHack::Static(my_scene::fresnel::get_camera(image_width, image_height, fov))
             };
             let scene = my_scene::fresnel::get_scene();
             Some((camera, scene))
@@ -169,8 +174,8 @@ fn get_camera_and_scene(config: &SceneConfig) -> Option<(Camera, Scene)> {
         "easing" => {
             // Easing test scene
             let camera = match config.animating {
-                true => my_scene::easing::get_animation_camera(image_width, image_height, fov),
-                false => my_scene::easing::get_camera(image_width, image_height, fov)
+                true => CameraHack::Animated(my_scene::easing::get_animation_camera(image_width, image_height, fov)),
+                false => CameraHack::Static(my_scene::easing::get_camera(image_width, image_height, fov))
             };
             let scene = my_scene::easing::get_scene();
             Some((camera, scene))
@@ -248,38 +253,44 @@ fn main() {
         tasks: ::num_cpus::get(), // Number of tasks to spawn. Will use up max available cores.
     };
 
-    if config.animating {
-        let (animate_from, animate_to) = config.time_slice;
+    match camera {
+        CameraHack::Animated(camera) => {
+            let (animate_from, animate_to) = config.time_slice;
 
-        let animator = raytracer::animator::Animator {
-            fps: config.fps,
-            animate_from: animate_from,
-            animate_to: animate_to,
-            starting_frame_number: config.starting_frame_number,
-            renderer: renderer
-        };
+            let animator = raytracer::animator::Animator {
+                fps: config.fps,
+                animate_from: animate_from,
+                animate_to: animate_to,
+                starting_frame_number: config.starting_frame_number,
+                renderer: renderer,
+                interpolator: Box::new(raytracer::animator::LerpInterpolator),
+            };
 
-        println!("Animating - tasks: {}, FPS: {}, start: {}s, end:{}s, starting frame: {}",
-                 ::num_cpus::get(), animator.fps, animator.animate_from, animator.animate_to,
-                 animator.starting_frame_number);
-        animator.animate(camera, shared_scene, &config.output_file);
-        let render_time = ::time::get_time().sec;
-        println!("Render done at {} ({}s)",
-                 render_time, render_time - scene_time);
-    } else {
-        // Still frame
-        println!("Rendering with {} tasks...", ::num_cpus::get());
-        let image_data = renderer.render(camera, shared_scene);
-        let render_time = ::time::get_time().sec;
-        println!("Render done at {} ({}s)...\nWriting file...",
-                 render_time, render_time - scene_time);
+            println!("Animating - tasks: {}, FPS: {}, start: {}s, end:{}s, starting frame: {}",
+                     ::num_cpus::get(), animator.fps, animator.animate_from, animator.animate_to,
+                     animator.starting_frame_number);
 
-        let out_file = format!("{}{}", config.output_file, ".ppm");
-        util::export::to_ppm(image_data, &out_file);
-        let export_time = ::time::get_time().sec;
+            animator.animate(&camera, shared_scene, &config.output_file);
 
-        println!("Write done: {} ({}s). Written to {}\nTotal: {}s",
-                 export_time, export_time - render_time,
-                 config.output_file, export_time - start_time);
+            let render_time = ::time::get_time().sec;
+            println!("Render done at {} ({}s)",
+                     render_time, render_time - scene_time);
+        },
+        CameraHack::Static(camera) => {
+            // Still frame
+            println!("Rendering with {} tasks...", ::num_cpus::get());
+            let image_data = renderer.render(camera, shared_scene);
+            let render_time = ::time::get_time().sec;
+            println!("Render done at {} ({}s)...\nWriting file...",
+                     render_time, render_time - scene_time);
+
+            let out_file = format!("{}{}", config.output_file, ".ppm");
+            util::export::to_ppm(image_data, &out_file);
+            let export_time = ::time::get_time().sec;
+
+            println!("Write done: {} ({}s). Written to {}\nTotal: {}s",
+                     export_time, export_time - render_time,
+                     config.output_file, export_time - start_time);
+        }
     }
 }

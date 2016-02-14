@@ -10,7 +10,7 @@ use material::textures::{CheckerTexture, CubeMap, UVTexture, ImageTexture};
 use raytracer::animator::CameraKeyframe;
 use raytracer::compositor::ColorRGBA;
 use raytracer::animator::easing::Easing;
-use scene::{Camera, Scene};
+use scene::{Camera, AnimatedCamera, Scene};
 use vec3::Vec3;
 
 // Easing test scene
@@ -25,26 +25,16 @@ pub fn get_camera(image_width: u32, image_height: u32, fov: f64) -> Camera {
     )
 }
 
-pub fn get_animation_camera(image_width: u32, image_height: u32, fov: f64) -> Camera {
-    let camera = Camera::new_with_keyframes(
-        Vec3 { x: 0.0, y: 0.0, z: 150.0 },
-        Vec3 { x: 0.0, y: 0.0, z: 0.0 },
-        Vec3 { x: 0.0, y: 1.0, z: 0.0 },
-        fov,
-        image_width,
-        image_height,
-        vec![
-            CameraKeyframe {
-                time: 10.0,
-                position: Vec3 { x: 0.0, y: 1000.0, z: 150.0 },
-                look_at: Vec3 { x: 0.0, y: 1000.0, z: 0.0 },
-                up: Vec3 { x: 0.0, y: 1.0, z: 0.0 },
-                easing: Easing { a: 0.0, b: 0.05, c: 0.1, d: 1.0 }
-            },
-        ]
-    );
-
-    camera
+pub fn get_animation_camera(image_width: u32, image_height: u32, fov: f64) -> AnimatedCamera {
+    AnimatedCamera::new(get_camera(image_width, image_height, fov), vec![
+        CameraKeyframe {
+            time: 10.0,
+            position: Vec3 { x: 0.0, y: 1000.0, z: 150.0 },
+            look_at: Vec3 { x: 0.0, y: 1000.0, z: 0.0 },
+            up: Vec3 { x: 0.0, y: 1.0, z: 0.0 },
+            easing: Easing { a: 0.0, b: 0.05, c: 0.1, d: 1.0 }
+        },
+    ])
 }
 
 pub fn get_scene() -> Scene {
