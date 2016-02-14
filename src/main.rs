@@ -8,6 +8,8 @@ extern crate rustc_serialize;
 extern crate threadpool;
 extern crate time;
 
+use scene::{Camera, AnimatedCamera};
+
 use std::fs::File;
 use std::io::{self, Read, Write};
 use std::env;
@@ -62,6 +64,11 @@ fn parse_args(args: env::Args) -> Result<ProgramArgs, String> {
         2 => Ok(ProgramArgs { config_file: args[1].clone() }),
         _ => Err(format!("Usage: {} scene_config.json", program_name)),
     }
+}
+
+enum CameraHack {
+    Static(Camera),
+    Animated(AnimatedCamera),
 }
 
 fn main() {
@@ -121,9 +128,9 @@ fn main() {
     let shared_scene = Arc::new(scene_config.get_scene());
 
     let camera = if config.animating {
-        scene_config.get_animation_camera(image_width, image_height, fov)
+        CameraHack::Animated(scene_config.get_animation_camera(image_width, image_height, fov))
     } else {
-        scene_config.get_camera(image_width, image_height, fov)
+        CameraHack::Static(scene_config.get_camera(image_width, image_height, fov))
     };
 
     let scene_time = ::time::get_time().sec;
@@ -142,38 +149,44 @@ fn main() {
         tasks: ::num_cpus::get(), // Number of tasks to spawn. Will use up max available cores.
     };
 
-    if config.animating {
-        let (animate_from, animate_to) = config.time_slice;
+    match camera {
+        CameraHack::Animated(camera) => {
+            let (animate_from, animate_to) = config.time_slice;
 
-        let animator = raytracer::animator::Animator {
-            fps: config.fps,
-            animate_from: animate_from,
-            animate_to: animate_to,
-            starting_frame_number: config.starting_frame_number,
-            renderer: renderer
-        };
+            let animator = raytracer::animator::Animator {
+                fps: config.fps,
+                animate_from: animate_from,
+                animate_to: animate_to,
+                starting_frame_number: config.starting_frame_number,
+                renderer: renderer,
+                interpolator: Box::new(raytracer::animator::LerpInterpolator),
+            };
 
-        println!("Animating - tasks: {}, FPS: {}, start: {}s, end:{}s, starting frame: {}",
-                 ::num_cpus::get(), animator.fps, animator.animate_from, animator.animate_to,
-                 animator.starting_frame_number);
-        animator.animate(camera, shared_scene, &config.output_file);
-        let render_time = ::time::get_time().sec;
-        println!("Render done at {} ({}s)",
-                 render_time, render_time - scene_time);
-    } else {
-        // Still frame
-        println!("Rendering with {} tasks...", ::num_cpus::get());
-        let image_data = renderer.render(camera, shared_scene);
-        let render_time = ::time::get_time().sec;
-        println!("Render done at {} ({}s)...\nWriting file...",
-                 render_time, render_time - scene_time);
+            println!("Animating - tasks: {}, FPS: {}, start: {}s, end:{}s, starting frame: {}",
+                     ::num_cpus::get(), animator.fps, animator.animate_from, animator.animate_to,
+                     animator.starting_frame_number);
 
-        let out_file = format!("{}{}", config.output_file, ".ppm");
-        util::export::to_ppm(image_data, &out_file);
-        let export_time = ::time::get_time().sec;
+            animator.animate(&camera, shared_scene, &config.output_file);
 
-        println!("Write done: {} ({}s). Written to {}\nTotal: {}s",
-                 export_time, export_time - render_time,
-                 config.output_file, export_time - start_time);
+            let render_time = ::time::get_time().sec;
+            println!("Render done at {} ({}s)",
+                     render_time, render_time - scene_time);
+        },
+        CameraHack::Static(camera) => {
+            // Still frame
+            println!("Rendering with {} tasks...", ::num_cpus::get());
+            let image_data = renderer.render(camera, shared_scene);
+            let render_time = ::time::get_time().sec;
+            println!("Render done at {} ({}s)...\nWriting file...",
+                     render_time, render_time - scene_time);
+
+            let out_file = format!("{}{}", config.output_file, ".ppm");
+            util::export::to_ppm(image_data, &out_file);
+            let export_time = ::time::get_time().sec;
+
+            println!("Write done: {} ({}s). Written to {}\nTotal: {}s",
+                     export_time, export_time - render_time,
+                     config.output_file, export_time - start_time);
+        }
     }
 }

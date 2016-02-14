@@ -1,5 +1,5 @@
 #![cfg_attr(test, allow(dead_code))]
-use ::scene::{Camera, Scene};
+use ::scene::{Camera, AnimatedCamera, Scene};
 
 pub mod bunny;
 pub mod cornell;
@@ -17,8 +17,9 @@ pub mod teapot;
 pub trait SceneConfig {
     fn get_camera(&self, image_width: u32, image_height: u32, fov: f64) -> Camera;
 
-    fn get_animation_camera(&self, image_width: u32, image_height: u32, fov: f64) -> Camera {
-        self.get_camera(image_width, image_height, fov)
+    fn get_animation_camera(&self, image_width: u32, image_height: u32, fov: f64) -> AnimatedCamera {
+        let camera = self.get_camera(image_width, image_height, fov);
+        AnimatedCamera::new(camera, Vec::new())
     }
 
     fn get_scene(&self) -> Scene;
