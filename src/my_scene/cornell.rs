@@ -74,9 +74,9 @@ pub fn get_scene() -> Scene {
     }
 }
 
-pub struct CornelConfig;
+pub struct CornellConfig;
 
-impl super::SceneConfig for CornelConfig {
+impl super::SceneConfig for CornellConfig {
     fn get_camera(&self, image_width: u32, image_height: u32, fov: f64) -> Camera {
         get_camera(image_width, image_height, fov)
     }

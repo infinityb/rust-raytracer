@@ -28,7 +28,7 @@ pub trait SceneConfig {
 pub fn scene_by_name(name: &str) -> Option<Box<SceneConfig>> {
     Some(match name {
         "bunny" => Box::new(bunny::BunnyConfig),
-        "cornel" => Box::new(cornell::CornelConfig),
+        "box" => Box::new(cornell::CornellConfig),
         "cow" => Box::new(cow::CowConfig),
         "easing" => Box::new(easing::EasingConfig),
         "fresnel" => Box::new(fresnel::FresnelConfig),
