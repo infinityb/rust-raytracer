@@ -1,0 +1,93 @@
+{
+	"lights": [
+		["SphereLight", {
+			"position": [50.0, 80.0, 50.0],
+			"color": [1.0, 1.0, 1.0],
+			"radius": 10.0
+		}]
+	],
+	"textures": {
+		"checker": ["CheckerTexture", {
+			"color1": [1.0, 1.0, 1.0],
+			"color2": [0.8, 0.1, 0.1],
+			"scale": 16.0
+		}],
+	},
+	"materials": {
+		"checker_grey": ["CookTorranceMaterial", {
+			"k_a": 0.0,
+			"k_d": 1.0,
+			"k_s": 0.0,
+			"k_sg": 0.0,
+			"k_tg": 0.0,
+			"gauss_constant": 1.0,
+			"roughness": 0.15,
+			"glossiness": 0.0,
+			"ior": 0.7,
+			"ambient": "one",
+			"diffuse": [0.6, 0.6, 0.6],
+			"specular": "one",
+			"transmission": "zero",
+			"diffuse_texture": "textures::checker"
+		}],
+		"grey": ["CookTorranceMaterial", {
+			"diffuse": [0.6, 0.6, 0.6]
+		}],
+		"blue": ["CookTorranceMaterial", {
+			"k_a": 0.0,
+			"k_d": 0.3,
+			"k_s": 0.7,
+			"k_sg": 0.0,
+			"k_tg": 0.0,
+			"gauss_constant": 50,
+			"roughness": 0.1,
+			"glossiness": 0.0,
+			"ior": 1.3,
+			"ambient": "one",
+			"diffuse": [0.1, 0.1, 1.0],
+			"specular": "one",
+			"transmission": "zero",
+			"diffuse_texture": null
+		}],
+		"red": ["PhongMaterial", {
+			...
+		}],
+		"green": ["PhongMaterial", {
+			...
+		}],
+		"shiny": ["CookTorranceMaterial", {
+			...
+		}],
+		"shiny_glossy": ["CookTorranceMaterial", {
+			...
+		}],
+		"refract": ["CookTorranceMaterial", {
+			...
+		}],
+	},
+	"prims": [
+		["Plane", {
+			"a": 0.0,
+			"b": 0.0,
+			"c": 1.0,
+			"d": 0.0,
+			"material": "materials::grey"
+		}],
+		["Plane", {
+			"a": 0.0,
+			"b": 1.0,
+			"c": 0.0,
+			"d": 0.0,
+			"material": "materials::checker_grey"
+		}],
+		["Plane", {
+			...
+		}],
+		["Plane", {
+			...
+		}],
+		["Plane", {
+			...
+		}]
+	]
+}

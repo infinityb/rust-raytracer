@@ -13,6 +13,7 @@ pub mod sphere;
 pub mod sponza;
 pub mod tachikoma;
 pub mod teapot;
+pub mod random;
 
 pub trait SceneConfig {
     fn get_camera(&self, image_width: u32, image_height: u32, fov: f64) -> Camera;

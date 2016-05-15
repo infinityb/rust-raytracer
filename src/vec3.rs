@@ -27,6 +27,10 @@ impl Vec3 {
         }
     }
 
+    pub fn xyz(x: f64, y: f64, z: f64) -> Vec3 {
+        Vec3 { x: x, y: y, z: z }
+    }
+
     pub fn len(&self) -> f64 {
         (self.x * self.x +
          self.y * self.y +

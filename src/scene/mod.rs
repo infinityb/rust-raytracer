@@ -5,3 +5,4 @@ pub use self::scene::Scene;
 pub mod camera;
 pub mod scene;
 pub mod animated_camera;
+pub mod deserializer;

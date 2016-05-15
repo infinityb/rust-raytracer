@@ -1,0 +1,52 @@
+{
+	"materials": {
+		"checker_grey": ["CookTorranceMaterial", {
+			"k_a": 0.0,
+			"k_d": 1.0,
+			"k_s": 0.0,
+			"k_sg": 0.0,
+			"k_tg": 0.0,
+			"gauss_constant": 1.0,
+			"roughness": 0.15,
+			"glossiness": 0.0,
+			"ior": 0.7,
+			"ambient": "one",
+			"diffuse": [0.6, 0.6, 0.6],
+			"specular": "one",
+			"transmission": "zero",
+			"diffuse_texture": "textures::checker"
+		}],
+		"grey": ["CookTorranceMaterial", {
+			"k_a": 0.0,
+			"k_d": 1.0,
+			"k_s": 1.0,
+			"k_sg": 0.0,
+			"k_tg": 0.0,
+			"gauss_constant": 1.0,
+			"roughness": 0.15,
+			"glossiness": 0.0,
+			"ior": 1.5,
+			"ambient": "one",
+			"diffuse": [0.6, 0.6, 0.6],
+			"specular": "one",
+			"transmission": "zero",
+			"diffuse_texture": null
+		}],
+		"blue": ["CookTorranceMaterial", {
+			"k_a": 0.0,
+			"k_d": 0.3,
+			"k_s": 0.7,
+			"k_sg": 0.0,
+			"k_tg": 0.0,
+			"gauss_constant": 50,
+			"roughness": 0.1,
+			"glossiness": 0.0,
+			"ior": 1.3,
+			"ambient": "one",
+			"diffuse": [0.1, 0.1, 1.0], 
+			"specular": "one",
+			"transmission": "zero",
+			"diffuse_texture": null
+		}]
+	}
+}

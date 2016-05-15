@@ -1,4 +1,6 @@
 #![deny(unused_imports)]
+#![feature(custom_derive, plugin)]
+#![plugin(serde_macros)]
 
 extern crate image;
 extern crate num;
@@ -7,6 +9,8 @@ extern crate rand;
 extern crate rustc_serialize;
 extern crate threadpool;
 extern crate time;
+extern crate serde;
+extern crate serde_json;
 
 use scene::{Camera, AnimatedCamera};
 
@@ -72,6 +76,13 @@ enum CameraHack {
 }
 
 fn main() {
+    use ::scene::deserializer::SceneFactory;
+    const DOCUMENT: &'static str = include_str!("../tools/scene/test.json");
+    let fac: SceneFactory = serde_json::from_str(DOCUMENT).unwrap();
+    println!("fac = {:?}", fac);
+}
+
+fn whatever() {
     let start_time = ::time::get_time().sec;
 
     let program_args = match parse_args(env::args()) {
@@ -113,11 +124,15 @@ fn main() {
 
     println!("Job started at {}...\nLoading scene...", start_time);
 
-    let scene_config = match my_scene::scene_by_name(&config.name) {
-        Some(scene_config) => scene_config,
-        None => {
-            write!(&mut io::stderr(), "unknown scene ``{}''\n", config.name).unwrap();
-            process::exit(1);
+    let scene_config: Box<my_scene::SceneConfig> = if &config.name[..] == "random" {
+        Box::new(my_scene::random::SphereConfig::new())
+    } else {
+        match my_scene::scene_by_name(&config.name) {
+            Some(scene_config) => scene_config,
+            None => {
+                write!(&mut io::stderr(), "unknown scene ``{}''\n", config.name).unwrap();
+                process::exit(1);
+            }
         }
     };
 
