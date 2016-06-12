@@ -26,11 +26,26 @@ pub fn get_camera(image_width: u32, image_height: u32, fov: f64) -> Camera {
 
 pub fn get_scene() -> Scene {
     let mut lights: Vec<Box<Light+Send+Sync>> = Vec::new();
-    lights.push(Box::new(SphereLight {position: Vec3 { x: 50.0, y: 80.0, z: 50.0 }, color: Vec3::one(), radius: 10.0 }));
+    lights.push(Box::new(SphereLight {
+        position: Vec3 { x: 50.0, y: 80.0, z: 50.0 },
+        color: Vec3::one(),
+        radius: 10.0
+    }));
 
     // Example of a textured material
-    let checker: Box<Texture+Send+Sync> = Box::new(CheckerTexture { color1: ColorRGBA::white(), color2: ColorRGBA::new_rgb(0.8, 0.1, 0.1), scale: 16.0 });
-    let checker_grey = CookTorranceMaterial { k_a: 0.0, k_d: 1.0, k_s: 0.0, k_sg: 0.0, k_tg: 0.0, gauss_constant: 1.0,  roughness: 0.15, glossiness: 0.0, ior: 0.7,  ambient: Vec3::one(), diffuse: Vec3 { x: 0.6, y: 0.6, z: 0.6 }, specular: Vec3::one(), transmission: Vec3::zero(), diffuse_texture: Some(checker.clone()) };
+    let checker: Box<Texture+Send+Sync> = Box::new(CheckerTexture {
+        color1: ColorRGBA::white(),
+        color2: ColorRGBA::new_rgb(0.8, 0.1, 0.1),
+        scale: 16.0
+    });
+    let checker_grey = CookTorranceMaterial {
+        k_a: 0.0, k_d: 1.0, k_s: 0.0, k_sg: 0.0, k_tg: 0.0,
+        gauss_constant: 1.0,  roughness: 0.15, glossiness: 0.0,
+        ior: 0.7,  ambient: Vec3::one(), diffuse: Vec3::xyz(0.6, 0.6, 0.6),
+        specular: Vec3::one(),
+        transmission: Vec3::zero(),
+        diffuse_texture: Some(checker.clone())
+    };
 
     // Example of a short-form material definition using defaults
     // let grey      = CookTorranceMaterial { k_a: 0.0, k_d: 1.0, k_s: 1.0, k_sg: 0.0, k_tg: 0.0, gauss_constant: 1.0,  roughness: 0.15, glossiness: 0.0, ior: 1.5,  ambient: Vec3::one(), diffuse: Vec3 { x: 0.6, y: 0.6, z: 0.6 }, specular: Vec3::one(), transmission: Vec3::zero(), diffuse_texture: None };
