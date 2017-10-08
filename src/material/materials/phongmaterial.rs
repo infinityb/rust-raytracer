@@ -17,7 +17,7 @@ pub struct PhongMaterial {
     pub shininess: f64,     // Size of Phong specular highlight
     pub glossiness: f64,    // How glossy reflections are. 0 for non-glossy surfaces.
     pub ior: f64,           // Index of refraction
-    pub diffuse_texture: Option<Box<Texture+Send+Sync>>
+    pub diffuse_texture: Option<Box<Texture>>
 }
 
 impl Material for PhongMaterial {
@@ -25,11 +25,11 @@ impl Material for PhongMaterial {
         let h = (l + i).unit();
 
         // Blinn-Phong approximation
+        let color    = self.diffuse_texture.as_ref()
+            .map(|x| x.color(u, v))
+            .unwrap_or_else(ColorRGBA::white);
         let ambient  = self.ambient.scale(self.k_a);
-        let diffuse  = self.diffuse.scale(self.k_d).scale(n.dot(&l)) * match self.diffuse_texture {
-            Some(ref x) => x.color(u, v),
-            None => ColorRGBA::white()
-        }.to_vec3();
+        let diffuse  = self.diffuse.scale(self.k_d).scale(n.dot(&l)) * color.to_vec3();
         let specular = self.specular.scale(self.k_s).scale(n.dot(&h).powf(self.shininess));
 
         ambient + diffuse + specular

@@ -1,12 +1,9 @@
 #![allow(unused_imports)]
 
-use geometry::prim::{Prim};
-use geometry::prims::{Plane, Sphere, Triangle};
-use light::light::{Light};
-use light::lights::{PointLight, SphereLight};
-use material::materials::{CookTorranceMaterial, FlatMaterial, PhongMaterial};
-use material::Texture;
-use material::textures::{CheckerTexture, CubeMap, UVTexture, ImageTexture};
+use geometry::{Prim, Plane, Sphere, Triangle, TriangleOptions};
+use light::{Light, PointLight, SphereLight};
+use material::{Material, CookTorranceMaterial, FlatMaterial, PhongMaterial};
+use material::{Texture, CheckerTexture, CubeMap, UVTexture, ImageTexture};
 use raytracer::animator::CameraKeyframe;
 use scene::{Camera, Scene};
 use vec3::Vec3;
@@ -24,7 +21,7 @@ pub fn get_camera(image_width: u32, image_height: u32, fov: f64) -> Camera {
 }
 
 pub fn get_scene(material_option: HeptoroidMaterial) -> Scene {
-    let mut lights: Vec<Box<Light+Send+Sync>> = Vec::new();
+    let mut lights: Vec<Box<Light>> = Vec::new();
     lights.push(Box::new(SphereLight { position: Vec3 { x: 2.0, y: 3.0, z: -2.0 }, color: Vec3 { x: 1.0, y: 1.0, z: 1.0 }, radius: 1.0 }));
 
     let heptoroid_material = match material_option {
@@ -39,7 +36,7 @@ pub fn get_scene(material_option: HeptoroidMaterial) -> Scene {
         }
     };
 
-    let mut prims: Vec<Box<Prim+Send+Sync>> = Vec::new();
+    let mut prims: Vec<Box<Prim>> = Vec::new();
     let heptoroid = ::util::import::from_obj(heptoroid_material, false, "./docs/assets/models/heptoroid.obj").ok().expect("failed to load obj model");;
     for triangle in heptoroid.triangles.into_iter() { prims.push(triangle); }
 

@@ -22,12 +22,12 @@ impl Texture for CheckerTexture {
         }
     }
 
-    fn clone_self(&self) -> Box<Texture+Send+Sync> {
+    fn clone_self(&self) -> Box<Texture> {
         Box::new(CheckerTexture {
             color1: self.color1,
             color2: self.color2,
             scale: self.scale
-        }) as Box<Texture+Send+Sync>
+        }) as Box<Texture>
     }
 }
 

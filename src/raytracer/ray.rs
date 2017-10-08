@@ -83,9 +83,9 @@ impl Ray {
 
 #[test]
 fn it_gets_the_nearest_hit() {
-    let lights: Vec<Box<Light+Send+Sync>> = Vec::new();
+    let lights: Vec<Box<Light>> = Vec::new();
 
-    let mut prims: Vec<Box<Prim+Send+Sync>> = Vec::new();
+    let mut prims: Vec<Box<Prim>> = Vec::new();
     let mat = FlatMaterial { color: Vec3::one() };
     let sphere_top = Sphere {
         center: Vec3::zero(),

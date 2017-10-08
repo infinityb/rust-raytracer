@@ -1,12 +1,9 @@
 #![allow(unused_imports)]
 
-use geometry::prim::{Prim};
-use geometry::prims::{Plane, Sphere, Triangle, TriangleOptions};
-use light::light::{Light};
-use light::lights::{PointLight, SphereLight};
-use material::materials::{CookTorranceMaterial, FlatMaterial, PhongMaterial};
-use material::Texture;
-use material::textures::{CheckerTexture, CubeMap, UVTexture, ImageTexture};
+use geometry::{Prim, Plane, Sphere, Triangle, TriangleOptions};
+use light::{Light, PointLight, SphereLight};
+use material::{Material, CookTorranceMaterial, FlatMaterial, PhongMaterial};
+use material::{Texture, CheckerTexture, CubeMap, UVTexture, ImageTexture};
 use raytracer::animator::CameraKeyframe;
 use raytracer::compositor::ColorRGBA;
 use scene::{Camera, Scene};
@@ -25,11 +22,11 @@ pub fn get_camera(image_width: u32, image_height: u32, fov: f64) -> Camera {
 }
 
 pub fn get_scene() -> Scene {
-    let mut lights: Vec<Box<Light+Send+Sync>> = Vec::new();
+    let mut lights: Vec<Box<Light>> = Vec::new();
     lights.push(Box::new(SphereLight {position: Vec3 { x: 50.0, y: 80.0, z: 50.0 }, color: Vec3::one(), radius: 10.0 }));
 
     // Example of a textured material
-    let checker: Box<Texture+Send+Sync> = Box::new(CheckerTexture { color1: ColorRGBA::white(), color2: ColorRGBA::new_rgb(0.8, 0.1, 0.1), scale: 16.0 });
+    let checker: Box<Texture> = Box::new(CheckerTexture { color1: ColorRGBA::white(), color2: ColorRGBA::new_rgb(0.8, 0.1, 0.1), scale: 16.0 });
     let checker_grey = CookTorranceMaterial { k_a: 0.0, k_d: 1.0, k_s: 0.0, k_sg: 0.0, k_tg: 0.0, gauss_constant: 1.0,  roughness: 0.15, glossiness: 0.0, ior: 0.7,  ambient: Vec3::one(), diffuse: Vec3 { x: 0.6, y: 0.6, z: 0.6 }, specular: Vec3::one(), transmission: Vec3::zero(), diffuse_texture: Some(checker.clone()) };
 
     // Example of a short-form material definition using defaults
@@ -43,7 +40,7 @@ pub fn get_scene() -> Scene {
     let shiny_glossy = CookTorranceMaterial { k_a: 0.0, k_d: 0.7, k_s: 1.0, k_sg: 0.4, k_tg: 0.0, gauss_constant: 5.0, roughness: 0.01,  glossiness: 0.2, ior: 0.25, ambient: Vec3::one(), diffuse: Vec3 { x: 0.3, y: 0.3, z: 1.0 }, specular: Vec3 { x: 0.3, y: 0.3, z: 1.0 }, transmission: Vec3::zero(), diffuse_texture: None };
     let refract      = CookTorranceMaterial { k_a: 0.0, k_d: 0.0, k_s: 1.0, k_sg: 1.0, k_tg: 1.0, gauss_constant: 5.0, roughness: 0.01,  glossiness: 0.0, ior: 3.0,  ambient: Vec3::one(), diffuse: Vec3 { x: 1.0, y: 1.0, z: 1.0 }, specular: Vec3 { x: 0.9, y: 0.9, z: 0.9 }, transmission: Vec3 { x: 0.8, y: 0.8, z: 0.8 }, diffuse_texture: None };
 
-    let mut prims: Vec<Box<Prim+Send+Sync>> = Vec::new();
+    let mut prims: Vec<Box<Prim>> = Vec::new();
     prims.push(Box::new(Plane { a:  0.0, b:  0.0, c: 1.0, d: 0.0,   material: Box::new(grey.clone()) }));         // Ahead
     prims.push(Box::new(Plane { a:  0.0, b:  1.0, c: 0.0, d: 0.0,   material: Box::new(checker_grey.clone()) })); // Bottom
     prims.push(Box::new(Plane { a:  0.0, b: -1.0, c: 0.0, d: 100.0, material: Box::new(grey.clone()) }));         // Top

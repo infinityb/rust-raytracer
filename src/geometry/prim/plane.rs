@@ -1,8 +1,10 @@
-use geometry::{BBox, PartialBoundingBox, Prim};
 use material::Material;
 use mat4::{Mat4, Transform};
 use raytracer::{Ray, Intersection};
 use vec3::Vec3;
+
+use super::super::{BBox, PartialBoundingBox};
+use super::Prim;
 
 #[cfg(test)]
 use material::materials::FlatMaterial;
@@ -13,7 +15,7 @@ pub struct Plane {
     pub b: f64, // normal.y
     pub c: f64, // normal.z
     pub d: f64,
-    pub material: Box<Material+Send+Sync>
+    pub material: Box<Material>
 }
 
 impl PartialBoundingBox for Plane {

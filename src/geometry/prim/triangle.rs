@@ -1,14 +1,14 @@
 #![allow(dead_code)]
 
-use geometry::bbox::{union_point, union_points, BBox, PartialBoundingBox};
-use geometry::prim::Prim;
+use geometry::bbox::{union_point, union_points};
 use material::Material;
 use mat4::{Mat4, Transform};
 use raytracer::{Ray, Intersection};
 use vec3::Vec3;
+use material::FlatMaterial;
 
-use material::materials::FlatMaterial;
-
+use super::super::{BBox, PartialBoundingBox};
+use super::Prim;
 
 struct UvValue {
     u: f64,
@@ -33,7 +33,7 @@ pub struct TriangleOptions {
     vertices: [Vec3; 3],
     normals: Option<[Vec3; 3]>,
     texinfo: Option<[UvValue; 3]>,
-    material: Option<Box<Material+Send+Sync>>,
+    material: Option<Box<Material>>,
 }
 
 fn get_auto_normals(v: [Vec3; 3]) -> [Vec3; 3] {
@@ -67,7 +67,7 @@ impl TriangleOptions {
         self
     }
 
-    pub fn material(&mut self, material: Box<Material+Send+Sync>) -> &mut Self {
+    pub fn material(&mut self, material: Box<Material>) -> &mut Self {
         self.material = Some(material);
         self
     }
@@ -96,7 +96,7 @@ pub struct Triangle {
     // Used in textured triangles, can be [UvValue; 3]::default() otherwise.
     texinfo: [UvValue; 3],
 
-    material: Box<Material+Send+Sync>
+    material: Box<Material>
 }
 
 impl PartialBoundingBox for Triangle {

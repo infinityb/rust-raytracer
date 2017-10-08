@@ -1,15 +1,12 @@
 #![allow(dead_code)]
 use raytracer::Ray;
 use vec3::Vec3;
+use super::PartialBoundingBox;
 
 #[derive(Clone, Copy, PartialEq)]
 pub struct BBox {
     pub min: Vec3,
     pub max: Vec3
-}
-
-pub trait PartialBoundingBox {
-    fn partial_bounding_box(&self) -> Option<BBox>;
 }
 
 impl PartialBoundingBox for BBox {

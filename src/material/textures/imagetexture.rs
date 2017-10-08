@@ -46,8 +46,8 @@ impl Texture for ImageTexture {
         )
     }
 
-    fn clone_self(&self) -> Box<Texture+Send+Sync> {
-        let tex: Box<Texture+Send+Sync> = Box::new(ImageTexture {
+    fn clone_self(&self) -> Box<Texture> {
+        let tex: Box<Texture> = Box::new(ImageTexture {
             image: self.image.clone()
         });
         tex

@@ -1,4 +1,4 @@
-use material::textures::ImageTexture;
+use material::ImageTexture;
 use std::sync::mpsc::channel;
 use std::thread;
 use vec3::Vec3;

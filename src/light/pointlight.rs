@@ -1,4 +1,4 @@
-use light::light::Light;
+use super::Light;
 use vec3::Vec3;
 
 #[allow(dead_code)]

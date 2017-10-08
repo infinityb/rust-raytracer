@@ -1,17 +1,14 @@
-pub use self::prim::Prim;
+mod bbox;
+mod mesh;
+mod prim;
+
 pub use self::mesh::Mesh;
-pub use self::bbox::{BBox, PartialBoundingBox};
+pub use self::bbox::BBox;
+pub use self::prim::Prim;
+pub use self::prim::plane::Plane;
+pub use self::prim::sphere::Sphere;
+pub use self::prim::triangle::{Triangle, TriangleOptions};
 
-pub mod bbox;
-pub mod prim;
-pub mod mesh;
-
-pub mod prims {
-    pub use self::plane::Plane;
-    pub use self::sphere::Sphere;
-    pub use self::triangle::{Triangle, TriangleOptions};
-
-    mod plane;
-    mod sphere;
-    mod triangle;
+pub trait PartialBoundingBox {
+    fn partial_bounding_box(&self) -> Option<BBox>;
 }

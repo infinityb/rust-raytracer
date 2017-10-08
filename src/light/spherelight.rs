@@ -1,5 +1,5 @@
 use rand::{thread_rng, Rng};
-use light::light::Light;
+use super::Light;
 use vec3::Vec3;
 
 #[allow(dead_code)]
@@ -10,6 +10,7 @@ pub struct SphereLight {
 }
 
 impl Light for SphereLight {
+    /// XXX(sell): make more ECS-like?
     fn position(&self) -> Vec3 {
         let mut rng = thread_rng();
 

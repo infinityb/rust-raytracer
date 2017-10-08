@@ -19,16 +19,16 @@ pub struct CookTorranceMaterial {
     pub glossiness: f64,     // How glossy reflections are. 0 for non-glossy surfaces.
     pub gauss_constant: f64, // Controls curve of distribution of microfacets
     pub ior: f64,            // Index of refraction, also used for specular highlights
-    pub diffuse_texture: Option<Box<Texture+Send+Sync>>
+    pub diffuse_texture: Option<Box<Texture>>
 }
 
 impl Material for CookTorranceMaterial {
     fn sample(&self, n: Vec3, i: Vec3, l: Vec3, u: f64, v: f64) -> Vec3 {
+        let color    = self.diffuse_texture.as_ref()
+            .map(|x| x.color(u, v))
+            .unwrap_or_else(ColorRGBA::white);
         let ambient  = self.ambient.scale(self.k_a);
-        let diffuse  = self.diffuse.scale(self.k_d).scale(n.dot(&l)) * match self.diffuse_texture {
-            Some(ref x) => x.color(u, v),
-            None => ColorRGBA::white()
-        }.to_vec3();
+        let diffuse  = self.diffuse.scale(self.k_d).scale(n.dot(&l)) * color.to_vec3();
 
         // Specular calculations
         let h = (l + i).unit();

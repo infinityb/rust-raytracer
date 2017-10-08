@@ -13,7 +13,7 @@ impl Texture for UVTexture {
     	ColorRGBA::new_rgb(u % range + min_value, v % range + min_value, min_value)
     }
 
-    fn clone_self(&self) -> Box<Texture+Send+Sync> {
-        Box::new(UVTexture) as Box<Texture+Send+Sync>
+    fn clone_self(&self) -> Box<Texture> {
+        Box::new(UVTexture) as Box<Texture>
     }
 }

@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use geometry::bbox::BBox;
+use geometry::BBox;
 use raytracer::Ray;
 use std::cmp;
 use std::f64;

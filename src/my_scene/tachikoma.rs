@@ -1,12 +1,9 @@
 #![allow(unused_imports)]
 
-use geometry::prim::{Prim};
-use geometry::prims::{Plane, Sphere, Triangle};
-use light::light::{Light};
-use light::lights::{PointLight, SphereLight};
-use material::materials::{CookTorranceMaterial, FlatMaterial, PhongMaterial};
-use material::Texture;
-use material::textures::{CheckerTexture, CubeMap, UVTexture, ImageTexture};
+use geometry::{Prim, Plane, Sphere, Triangle, TriangleOptions};
+use light::{Light, PointLight, SphereLight};
+use material::{Material, CookTorranceMaterial, FlatMaterial, PhongMaterial};
+use material::{Texture, CheckerTexture, CubeMap, UVTexture, ImageTexture};
 use raytracer::animator::CameraKeyframe;
 use scene::{Camera, Scene};
 use vec3::Vec3;
@@ -23,13 +20,13 @@ pub fn get_camera(image_width: u32, image_height: u32, fov: f64) -> Camera {
 }
 
 pub fn get_scene() -> Scene {
-    let mut lights: Vec<Box<Light+Send+Sync>> = Vec::new();
+    let mut lights: Vec<Box<Light>> = Vec::new();
     lights.push(Box::new(SphereLight { position: Vec3 { x: 0.0, y: 100.0, z: 0.0 }, color: Vec3 { x: 1.0, y: 1.0, z: 1.0 }, radius: 25.0 }));
 
     let blue =  CookTorranceMaterial { k_a: 0.0, k_d: 0.9, k_s: 1.0, k_sg: 0.4, k_tg: 0.0, gauss_constant: 5.0, roughness: 0.01, glossiness: 0.0, ior: 0.25, ambient: Vec3::one(), diffuse: Vec3 { x: 0.16, y: 0.29, z: 0.44 }, specular: Vec3::one(), transmission: Vec3::zero(), diffuse_texture: None };
     let floor = CookTorranceMaterial { k_a: 0.0, k_d: 0.9, k_s: 1.0, k_sg: 1.0, k_tg: 0.0, gauss_constant: 5.0, roughness: 0.3,  glossiness: 0.0, ior: 1.0,  ambient: Vec3::one(), diffuse: Vec3 { x: 0.58, y: 0.63, z: 0.44 }, specular: Vec3 { x: 0.9, y: 0.9, z: 0.9 }, transmission: Vec3::zero(), diffuse_texture: None };
 
-    let mut prims: Vec<Box<Prim+Send+Sync>> = Vec::new();
+    let mut prims: Vec<Box<Prim>> = Vec::new();
     prims.push(Box::new(Plane { a: 0.0, b: 1.0, c: 0.0, d: 0.0, material: Box::new(floor.clone()) })); // Bottom
 
     let tachikoma = ::util::import::from_obj(blue, false, "./docs/assets/models/tachikoma.obj").ok().expect("failed to load obj model");;

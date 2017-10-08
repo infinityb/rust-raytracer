@@ -1,6 +1,6 @@
-use geometry::prims::TriangleOptions;
+use geometry::TriangleOptions;
 use geometry::{Mesh, Prim};
-use material::materials::CookTorranceMaterial;
+use material::CookTorranceMaterial;
 use raytracer::compositor::{Surface, ColorRGBA};
 use std::fs::File;
 use std::path::Path;
@@ -28,7 +28,7 @@ pub fn from_obj(material: CookTorranceMaterial, flip_normals: bool, filename: &s
 
     let mut vertices: Vec<Vec3> = Vec::new();
     let mut normals : Vec<Vec3> = Vec::new();
-    let mut triangles: Vec<Box<Prim+Send+Sync>> = Vec::new();
+    let mut triangles: Vec<Box<Prim>> = Vec::new();
     let mut tex_coords: Vec<Vec<f64>> = Vec::new();
     let mut current_line = 0;
     let normal_scale = if flip_normals { -1.0 } else { 1.0 };

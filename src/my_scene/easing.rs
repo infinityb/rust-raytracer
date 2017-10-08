@@ -1,12 +1,9 @@
 #![allow(unused_imports)]
 
-use geometry::prim::{Prim};
-use geometry::prims::{Plane, Sphere, Triangle};
-use light::light::{Light};
-use light::lights::{PointLight, SphereLight};
-use material::materials::{CookTorranceMaterial, FlatMaterial, PhongMaterial};
-use material::Texture;
-use material::textures::{CheckerTexture, CubeMap, UVTexture, ImageTexture};
+use geometry::{Prim, Plane, Sphere, Triangle, TriangleOptions};
+use light::{Light, PointLight, SphereLight};
+use material::{Material, CookTorranceMaterial, FlatMaterial, PhongMaterial};
+use material::{Texture, CheckerTexture, CubeMap, UVTexture, ImageTexture};
 use raytracer::animator::CameraKeyframe;
 use raytracer::compositor::ColorRGBA;
 use raytracer::animator::easing::Easing;
@@ -46,7 +43,7 @@ pub fn get_animation_camera(image_width: u32, image_height: u32, fov: f64) -> Ca
 }
 
 pub fn get_scene() -> Scene {
-    let mut lights: Vec<Box<Light+Send+Sync>> = Vec::new();
+    let mut lights: Vec<Box<Light>> = Vec::new();
     lights.push(Box::new(SphereLight {
         position: Vec3 { x: 0.0, y: 0.0, z: 150.0 },
         color: Vec3::one(),
@@ -59,7 +56,7 @@ pub fn get_scene() -> Scene {
         radius: 10.0
     }));
 
-    let checker: Box<Texture+Send+Sync> = Box::new(CheckerTexture {
+    let checker: Box<Texture> = Box::new(CheckerTexture {
         color1: ColorRGBA::white(),
         color2: ColorRGBA::new_rgb(0.1, 0.1, 0.1),
         scale: 32.0
@@ -81,7 +78,7 @@ pub fn get_scene() -> Scene {
         diffuse_texture: Some(checker)
     };
 
-    let mut prims: Vec<Box<Prim+Send+Sync>> = Vec::new();
+    let mut prims: Vec<Box<Prim>> = Vec::new();
     prims.push(Box::new(Plane {
         a: 0.0,
         b: 0.0,
