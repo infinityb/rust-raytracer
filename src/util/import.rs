@@ -1,15 +1,14 @@
-use geometry::TriangleOptions;
-use geometry::{Mesh, Prim};
-use material::CookTorranceMaterial;
+use raytracer::geometry::TriangleOptions;
+use raytracer::geometry::{Mesh, Prim};
 use raytracer::compositor::{Surface, ColorRGBA};
+use raytracer::material::Material;
 use std::fs::File;
 use std::path::Path;
 use std::io::{BufRead, BufReader};
-use vec3::Vec3;
+use raytracer::util::Vec3;
 
-/// This is limited to only CookTorranceMaterials, as I couldn't get a Box<Material> to clone
 /// a new material for each triangle primitive in the object model.
-pub fn from_obj(material: CookTorranceMaterial, flip_normals: bool, filename: &str) -> Result<Mesh, String> {
+pub fn from_obj(material: Box<Material>, flip_normals: bool, filename: &str) -> Result<Mesh, String> {
     let file_handle = match File::open(&filename) {
         Ok(f) => f,
         Err(err) => return Err(format!("{}", err))
@@ -101,7 +100,7 @@ pub fn from_obj(material: CookTorranceMaterial, flip_normals: bool, filename: &s
                     vertices[pairs[1][0]],
                     vertices[pairs[2][0]]);
 
-                triopts.material(Box::new(material.clone()));
+                triopts.material(material.clone_box());
                 triopts.normals([
                     normals[pairs[0][2]],
                     normals[pairs[1][2]],

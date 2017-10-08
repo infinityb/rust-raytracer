@@ -2,29 +2,23 @@
 
 extern crate image;
 extern crate num;
-extern crate num_cpus;
 extern crate rand;
 extern crate rustc_serialize;
-extern crate threadpool;
 extern crate time;
+extern crate rayon;
+extern crate raytracer;
 
 use std::fs::File;
 use std::io::{self, Read, Write};
 use std::env;
 use std::process;
-use std::sync::Arc;
 use rustc_serialize::json;
 use rustc_serialize::json::DecoderError::MissingFieldError;
 
-mod geometry;
-mod light;
-mod material;
+// private demo textures, like CubeMap
+mod textures;
 mod my_scene;
-mod raytracer;
-mod scene;
 mod util;
-mod vec3;
-mod mat4;
 
 // Replace this with argparse eventually
 struct ProgramArgs {
@@ -113,8 +107,7 @@ fn main() {
     let (image_width, image_height) = config.size;
     let fov = config.fov;
 
-    // Hackish solution for animator
-    let shared_scene = Arc::new(scene_config.get_scene());
+    let scene = scene_config.get_scene();
 
     let camera = if config.animating {
         scene_config.get_animation_camera(image_width, image_height, fov)
@@ -135,31 +128,30 @@ fn main() {
 
     let renderer = raytracer::Renderer {
         options: render_options,
-        tasks: ::num_cpus::get(), // Number of tasks to spawn. Will use up max available cores.
+        tasks:  None, // Number of tasks to spawn. Defaults to the current number of cpus
     };
 
-    if config.animating {
-        let (animate_from, animate_to) = config.time_slice;
+    // if config.animating {
+    //     let (animate_from, animate_to) = config.time_slice;
 
-        let animator = raytracer::animator::Animator {
-            fps: config.fps,
-            animate_from: animate_from,
-            animate_to: animate_to,
-            starting_frame_number: config.starting_frame_number,
-            renderer: renderer
-        };
+    //     let animator = raytracer::animator::Animator {
+    //         fps: config.fps,
+    //         animate_from: animate_from,
+    //         animate_to: animate_to,
+    //         starting_frame_number: config.starting_frame_number,
+    //         renderer: renderer
+    //     };
 
-        println!("Animating - tasks: {}, FPS: {}, start: {}s, end:{}s, starting frame: {}",
-                 ::num_cpus::get(), animator.fps, animator.animate_from, animator.animate_to,
-                 animator.starting_frame_number);
-        animator.animate(camera, shared_scene, &config.output_file);
-        let render_time = ::time::get_time().sec;
-        println!("Render done at {} ({}s)",
-                 render_time, render_time - scene_time);
-    } else {
+    //     println!("Animating - tasks: {}, FPS: {}, start: {}s, end:{}s, starting frame: {}",
+    //              ::num_cpus::get(), animator.fps, animator.animate_from, animator.animate_to,
+    //              animator.starting_frame_number);
+    //     animator.animate(&camera, &scene, &config.output_file);
+    //     let render_time = ::time::get_time().sec;
+    //     println!("Render done at {} ({}s)",
+    //              render_time, render_time - scene_time);
+    // } else {
         // Still frame
-        println!("Rendering with {} tasks...", ::num_cpus::get());
-        let image_data = renderer.render(camera, shared_scene);
+        let image_data = renderer.render(&camera, &scene);
         let render_time = ::time::get_time().sec;
         println!("Render done at {} ({}s)...\nWriting file...",
                  render_time, render_time - scene_time);
@@ -171,5 +163,5 @@ fn main() {
         println!("Write done: {} ({}s). Written to {}\nTotal: {}s",
                  export_time, export_time - render_time,
                  config.output_file, export_time - start_time);
-    }
+    //}
 }

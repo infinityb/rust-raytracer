@@ -1,0 +1,15 @@
+{
+    "name": "heptoroid-white",
+    "size": [2880, 1800],
+    "fov": 30.0,
+    "reflect_depth": 4,
+    "refract_depth": 6,
+    "shadow_samples": 64,
+    "gloss_samples": 4,
+    "pixel_samples": 6,
+    "output_file": "test",
+    "animating": false,
+    "fps": 25.0,
+    "time_slice": [0.0, 10.0],
+    "starting_frame_number": 0
+}

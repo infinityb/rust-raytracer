@@ -4,9 +4,8 @@ use geometry::{Prim, Plane, Sphere, Triangle, TriangleOptions};
 use light::{Light, PointLight, SphereLight};
 use material::{Material, CookTorranceMaterial, FlatMaterial, PhongMaterial};
 use material::{Texture, CheckerTexture, CubeMap, UVTexture, ImageTexture};
-use raytracer::animator::CameraKeyframe;
 use raytracer::compositor::ColorRGBA;
-use raytracer::animator::easing::Easing;
+use raytracer::animator::{CameraKeyframe, Easing};
 use scene::{Camera, Scene};
 use vec3::Vec3;
 

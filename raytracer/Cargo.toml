@@ -1,0 +1,10 @@
+[package]
+name = "raytracer"
+version = "0.1.0"
+authors = ["Stacey Ell <stacey.ell@gmail.com>"]
+
+[dependencies]
+rand = "0.3.17"
+rayon = "0.8.2"
+num = "0.1.40"
+num_cpus = "1.7.0"
